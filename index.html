@@ -1,1 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2025 NYC Marathon Sponsorship</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="hero">
+                <h1>Run the <span>2025 New York City Marathon</span> with me</h1>
+                <p>Sponsor a mile. <span>Sponsor inclusion.</span></p>
+            </div>
+        </div>
+    </header>
 
+    <div class="container">
+        <div class="map-container">
+            <img src="nyc-marathon-map.jpg" alt="NYC Marathon Map" class="map-image">
+
+            <!-- Mile markers dynamically populated -->
+            <div id="mile-markers"></div>
+        </div>
+
+        <!-- Progress section -->
+        <div class="progress-section">
+            <div class="progress-text">
+                <div id="funds-raised">$300 raised so far</div>
+                <div>Goal: $2,600</div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <div class="progress-amount">
+                26 miles | <span>$2,600</span>
+            </div>
+            <p>Help me reach my goal by sponsoring a mile for $100!</p>
+            <img src="kulturecity-logo.png" alt="KultureCity Logo" class="logo">
+        </div>
+
+        <!-- Thank you message -->
+        <div class="thank-you" id="thank-you">
+            <h2>Thank You for Your Support!</h2>
+            <p>I'll be in touch soon with instructions on how to complete your donation.</p>
+            <p>Your encouragement means the world to me!</p>
+        </div>
+    </div>
+
+    <!-- Sponsorship form modal -->
+    <div id="sponsorModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Sponsor Mile <span id="mileNumber"></span></h2>
+            <p>Your $100 donation helps support inclusion through KultureCity.</p>
+
+            <form id="sponsorForm">
+                <div class="form-group">
+                    <label for="firstName">First Name *</label>
+                    <input type="text" id="firstName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="lastName">Last Name *</label>
+                    <input type="text" id="lastName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Phone Number *</label>
+                    <input type="tel" id="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Your Encouraging Message *</label>
+                    <textarea id="message" required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Donation Amount *</label>
+                    <input type="number" id="amount" min="100" value="100" required>
+                </div>
+
+                <button type="submit" class="submit-button">Submit Sponsorship</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
