@@ -15,6 +15,8 @@ const tooltip = document.createElement("div");
 tooltip.classList.add("tooltip");
 document.body.appendChild(tooltip);
 
+let activeTooltip = null;
+
 miles.forEach(mile => {
     const marker = document.createElement("div");
     marker.classList.add("mile-marker", mile.sponsored ? "sponsored" : "needed");
@@ -23,20 +25,18 @@ miles.forEach(mile => {
     marker.style.left = mile.left;
     marker.style.top = mile.top;
 
-    marker.addEventListener("mouseover", (event) => {
-        tooltip.innerHTML = mile.sponsored 
-            ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>` 
-            : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
+    // Show tooltip when hovering
+    marker.addEventListener("mouseover", (event) => showTooltip(event, mile));
+    marker.addEventListener("mouseout", () => hideTooltip());
 
-        tooltip.style.left = `${event.pageX + 10}px`;
-        tooltip.style.top = `${event.pageY + 10}px`;
-        tooltip.style.display = "block";
+    // Allow tooltip to stay when hovering over it
+    tooltip.addEventListener("mouseover", () => {
+        if (activeTooltip) tooltip.style.display = "block";
     });
 
-    marker.addEventListener("mouseout", () => {
-        tooltip.style.display = "none";
-    });
+    tooltip.addEventListener("mouseout", () => hideTooltip());
 
+    // Click opens modal (if unsponsored)
     marker.addEventListener("click", () => {
         if (!mile.sponsored) {
             openSponsorModal(mile.number);
@@ -46,13 +46,32 @@ miles.forEach(mile => {
     mileContainer.appendChild(marker);
 });
 
+// Show tooltip with sponsor info or sponsor button
+function showTooltip(event, mile) {
+    activeTooltip = mile;
+    tooltip.innerHTML = mile.sponsored
+        ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`
+        : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
+
+    tooltip.style.left = `${event.pageX + 10}px`;
+    tooltip.style.top = `${event.pageY + 10}px`;
+    tooltip.style.display = "block";
+}
+
+// Hide tooltip when not hovering over the marker or tooltip
+function hideTooltip() {
+    tooltip.style.display = "none";
+    activeTooltip = null;
+}
+
+// Open sponsor modal
 const modal = document.getElementById("sponsorModal");
 const closeModal = document.querySelector(".close");
 
 function openSponsorModal(mile) {
     document.getElementById("mileNumber").textContent = mile;
     modal.style.display = "block";
-    tooltip.style.display = "none";
+    tooltip.style.display = "none"; // Hide tooltip when clicking
 }
 
 closeModal.addEventListener("click", () => {
