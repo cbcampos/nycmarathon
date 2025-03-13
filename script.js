@@ -182,6 +182,8 @@ document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[r
 document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    console.log("🚀 Form Submission Started");
+
     // Gather form data
     const formData = {
         mile: document.getElementById("mileNumber").textContent,
@@ -193,25 +195,36 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         amount: document.getElementById("amount").value.trim()
     };
 
-    // Debugging: Log data to console
-    console.log("Submitting Form Data:", JSON.stringify(formData));
+    // Debugging: Log formData to console
+    console.log("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
+
+    // Verify required fields before sending
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.message || !formData.amount) {
+        console.error("❌ Missing required fields:", formData);
+        alert("Please fill out all required fields.");
+        return;
+    }
 
     try {
+        console.log("🔄 Sending request to Google Apps Script...");
+
         const response = await fetch(googleScriptURL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
 
+        console.log("🔄 Waiting for response...");
+
         if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
+            throw new Error(`❌ HTTP Error: ${response.status} - ${response.statusText}`);
         }
 
         const responseData = await response.json();
-        console.log("Server Response:", responseData);
+        console.log("✅ Server Response:", responseData);
 
         if (responseData.success) {
-            alert("Sponsorship submitted successfully!");
+            alert("🎉 Sponsorship submitted successfully!");
             document.getElementById("sponsorForm").reset();
             modal.classList.add("hidden");
             document.body.style.overflow = "auto";
@@ -220,8 +233,8 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
             throw new Error(responseData.error || "Unknown server error");
         }
     } catch (error) {
-        console.error("Submission Failed:", error);
-        alert("Error submitting sponsorship. Please try again.");
+        console.error("❌ Submission Failed:", error);
+        alert(`Error submitting sponsorship. Details logged in console.`);
     }
 });
 
