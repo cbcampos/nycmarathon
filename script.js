@@ -120,9 +120,21 @@ function renderMileMarkers() {
         marker.style.left = mile.coords.left;
         marker.style.top = mile.coords.top;
 
+        // Desktop events
         marker.addEventListener("mouseover", (event) => showTooltip(event, mile));
         marker.addEventListener("mouseout", () => hideTooltip());
 
+        // Mobile events
+        marker.addEventListener("touchstart", (event) => {
+            event.preventDefault(); // Prevent double-tap zoom
+            if (!mile.sponsored) {
+                openSponsorModal(mile.number);
+            } else {
+                showTooltip(event, mile);
+            }
+        });
+
+        // Click event for both desktop and mobile
         marker.addEventListener("click", () => {
             if (!mile.sponsored) {
                 openSponsorModal(mile.number);
@@ -147,15 +159,27 @@ function showTooltip(event, mile) {
         
         // Add click event listener to the sponsor button
         const sponsorButton = tooltip.querySelector('.sponsor-button');
-        sponsorButton.addEventListener('click', () => {
+        sponsorButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event from bubbling up
             openSponsorModal(mile.number);
             hideTooltip();
         });
     }
 
     document.body.appendChild(tooltip);
-    tooltip.style.left = `${event.pageX + 10}px`;
-    tooltip.style.top = `${event.pageY + 10}px`;
+    
+    // Position tooltip based on device type
+    if ('ontouchstart' in window) {
+        // For mobile devices, position at the center of the screen
+        tooltip.style.left = '50%';
+        tooltip.style.top = '50%';
+        tooltip.style.transform = 'translate(-50%, -50%)';
+    } else {
+        // For desktop, position near the cursor
+        tooltip.style.left = `${event.pageX + 10}px`;
+        tooltip.style.top = `${event.pageY + 10}px`;
+    }
+    
     tooltip.style.display = "block";
 }
 
