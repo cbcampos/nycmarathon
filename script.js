@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbz9uqBHWR97JLxTGNtxdNasJyeqrcSwxO5kdTgBVOwmNbSHM_AZbqp2cgKdXF1DXuVbJQ/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbwdYA4ezxvGRqEIBLBbrf7fnyxzz8fIt6_CDgUaVNia1w_LHoGbzc2fV295FbKhQ-Ct/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -237,15 +237,24 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         document.body.appendChild(form);
         form.submit();
 
-        // Clean up after submission
-        setTimeout(() => {
-            document.body.removeChild(form);
-            document.body.removeChild(iframe);
-        }, 1000);
+        // Wait for response
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-        alert("🎉 Sponsorship submitted successfully!");
-        modal.style.display = "none";
-        loadSponsorships();
+        // Clean up
+        document.body.removeChild(form);
+        document.body.removeChild(iframe);
+
+        // Check if the submission was successful
+        const response = await fetch(googleScriptURL + '?callback=checkSubmission');
+        const data = await response.json();
+        
+        if (data.success) {
+            alert("🎉 Sponsorship submitted successfully!");
+            modal.style.display = "none";
+            loadSponsorships();
+        } else {
+            throw new Error(data.error || "Submission failed");
+        }
     } catch (error) {
         logDebug("❌ Submission Failed:", error);
         alert("Error submitting sponsorship. Check console for details.");
