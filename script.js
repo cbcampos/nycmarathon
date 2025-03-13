@@ -49,6 +49,10 @@ async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
         const response = await fetch(googleScriptURL, { mode: "cors" });
+        const response = await fetch(googleScriptURL, { 
+            mode: "cors",
+            credentials: "omit"
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -194,6 +198,7 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             mode: "cors",
+            credentials: "omit",
             body: JSON.stringify(formData)
         });
 
