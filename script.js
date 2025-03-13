@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbxJlvWESEVqErK_fwiOfMly2bukwNZ5BJ2ojfVBYGmiCjO_K6XiFH6uJBwc_gc5_WTFAw/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbyl6JWMFT6xqMLs9nzFRTLiGGEWAEpe4ugQPYsTgyYOY-g3e1a5-CEaDKRYmMK1G2emTA/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -6,7 +6,7 @@ const modal = document.getElementById("sponsorModal");
 const closeModal = document.querySelector(".close");
 const submitButton = document.querySelector(".submit-button");
 
-// Define mile positions
+// Define mile positions (in percentage based on original map)
 const miles = Array.from({ length: 26 }, (_, i) => ({
     number: i + 1,
     coords: pixelToPercentage([
@@ -28,40 +28,23 @@ function pixelToPercentage(x, y) {
     };
 }
 
-// Debugging: Log messages to console and webpage
-function setupDebugging() {
-    let debugArea = document.getElementById("debugArea");
-    if (!debugArea) {
-        debugArea = document.createElement("div");
-        debugArea.id = "debugArea";
-        debugArea.style = "background:#f8f8f8; padding:10px; border:1px solid #ccc; margin-top:10px; max-height:200px; overflow-y:auto; font-size:12px;";
-        document.body.appendChild(debugArea);
-    }
-}
-
+// Debugging helper
 function logDebug(message) {
     console.log(message);
-    let debugArea = document.getElementById("debugArea");
-    if (debugArea) {
-        debugArea.innerHTML += `<p>${message}</p>`;
-    }
 }
-
-// Initialize debugging display
-setupDebugging();
 
 // Fetch sponsorship data
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
-        const response = await fetch(`${googleScriptURL}?action=getSponsorshipData`);
-        
+        const response = await fetch(`${googleScriptURL}?action=getSponsorshipData`, { mode: "cors" });
+
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
         const sponsorships = await response.json();
-        logDebug("✅ Sponsorship data loaded: " + JSON.stringify(sponsorships, null, 2));
+        logDebug("✅ Sponsorship data loaded:", sponsorships);
 
         let totalRaised = 0;
         miles.forEach(mile => {
@@ -94,8 +77,7 @@ function updateProgressBar(totalRaised) {
 // Render mile markers
 function renderMileMarkers() {
     if (!mileContainer) return;
-    mileContainer.innerHTML = ""; // Clear existing markers
-    logDebug("🔄 Rendering mile markers...");
+    mileContainer.innerHTML = "";
 
     miles.forEach(mile => {
         const marker = document.createElement("div");
@@ -146,15 +128,15 @@ function hideTooltip() {
 // Open sponsor modal
 function openSponsorModal(mile) {
     document.getElementById("mileNumber").textContent = mile;
-    modal.style.display = "flex"; // Show modal
-    document.body.style.overflow = "hidden"; // Prevent background scrolling
-    validateForm(); // Ensure the submit button is properly disabled if fields are empty
+    modal.style.display = "flex";
+    document.body.style.overflow = "hidden";
+    validateForm();
 }
 
 // Close modal
 closeModal.addEventListener("click", () => {
     modal.style.display = "none";
-    document.body.style.overflow = "auto"; // Restore background scrolling
+    document.body.style.overflow = "auto";
 });
 
 // Close modal when clicking outside the form
@@ -182,9 +164,8 @@ document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[r
 document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    console.log("🚀 Form Submission Started");
+    logDebug("🚀 Form Submission Started");
 
-    // Gather form data
     const formData = {
         mile: document.getElementById("mileNumber").textContent,
         firstName: document.getElementById("firstName").value.trim(),
@@ -195,46 +176,35 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         amount: document.getElementById("amount").value.trim()
     };
 
-    // Debugging: Log formData to console
-    console.log("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
-
-    // Verify required fields before sending
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.message || !formData.amount) {
-        console.error("❌ Missing required fields:", formData);
-        alert("Please fill out all required fields.");
-        return;
-    }
+    logDebug("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
 
     try {
-        console.log("🔄 Sending request to Google Apps Script...");
-
         const response = await fetch(googleScriptURL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
+            mode: "cors",
             body: JSON.stringify(formData)
         });
 
-        console.log("🔄 Waiting for response...");
-
         if (!response.ok) {
-            throw new Error(`❌ HTTP Error: ${response.status} - ${response.statusText}`);
+            throw new Error(`HTTP Error: ${response.status}`);
         }
 
         const responseData = await response.json();
-        console.log("✅ Server Response:", responseData);
+        logDebug("✅ Server Response:", responseData);
 
         if (responseData.success) {
             alert("🎉 Sponsorship submitted successfully!");
             document.getElementById("sponsorForm").reset();
-            modal.classList.add("hidden");
+            modal.style.display = "none";
             document.body.style.overflow = "auto";
-            loadSponsorships(); // Refresh sponsorships
+            loadSponsorships();
         } else {
             throw new Error(responseData.error || "Unknown server error");
         }
     } catch (error) {
-        console.error("❌ Submission Failed:", error);
-        alert(`Error submitting sponsorship. Details logged in console.`);
+        logDebug("❌ Submission Failed:", error);
+        alert("Error submitting sponsorship. Check console for details.");
     }
 });
 
