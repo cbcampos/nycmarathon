@@ -3,7 +3,29 @@ const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
 
-// Debug area (creates an element if not already on the page)
+// Define mile positions
+const miles = Array.from({ length: 26 }, (_, i) => ({
+    number: i + 1,
+    coords: pixelToPercentage([
+        321, 492, 680, 910, 1130, 1322, 1522, 1715, 1820, 2005,
+        2130, 2340, 2507, 2665, 2760, 2760, 2965, 3190, 3430, 3648,
+        3690, 3485, 3265, 3060, 2865, 2790
+    ][i], [
+        1175, 1282, 1200, 1170, 1220, 1260, 1275, 1260, 1410, 1265,
+        1230, 1260, 1150, 1075, 1125, 915, 890, 890, 890, 920,
+        770, 725, 725, 710, 710, 625
+    ][i])
+}));
+
+// Convert pixel positions to percentage
+function pixelToPercentage(x, y) {
+    return {
+        left: `${((x - 64) / 4001) * 100}%`,
+        top: `${((y - 76) / 1817) * 100}%`
+    };
+}
+
+// Debugging: Log messages to console and webpage
 function setupDebugging() {
     let debugArea = document.getElementById("debugArea");
     if (!debugArea) {
@@ -14,19 +36,19 @@ function setupDebugging() {
     }
 }
 
-// Function to log debug messages to console and on the page
+// Log messages to console and debug area
 function logDebug(message) {
-    console.log(message); // Logs in the browser console
+    console.log(message);
     let debugArea = document.getElementById("debugArea");
     if (debugArea) {
         debugArea.innerHTML += `<p>${message}</p>`;
     }
 }
 
-// Initialize the debugging display
+// Initialize debugging display
 setupDebugging();
 
-// Fetch sponsorship data from Google Sheets
+// Fetch sponsorship data
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
@@ -58,7 +80,7 @@ async function loadSponsorships() {
     }
 }
 
-// Update the fundraising progress bar
+// Update progress bar
 function updateProgressBar(totalRaised) {
     const goalAmount = 2600;
     progressText.textContent = `$${totalRaised} raised so far`;
@@ -67,7 +89,7 @@ function updateProgressBar(totalRaised) {
     logDebug(`🔄 Progress bar updated: $${totalRaised} raised so far (${percentage.toFixed(2)}%)`);
 }
 
-// Render mile markers on the map
+// Render mile markers
 function renderMileMarkers() {
     if (!mileContainer) return;
     mileContainer.innerHTML = ""; // Clear existing markers
@@ -96,7 +118,7 @@ function renderMileMarkers() {
     logDebug(`✅ Rendered ${miles.length} mile markers.`);
 }
 
-// Show tooltip for mile marker
+// Show tooltip
 function showTooltip(event, mile) {
     const tooltip = document.createElement("div");
     tooltip.classList.add("tooltip");
@@ -111,7 +133,7 @@ function showTooltip(event, mile) {
     tooltip.style.display = "block";
 }
 
-// Hide the tooltip when mouse leaves
+// Hide tooltip
 function hideTooltip() {
     const tooltip = document.querySelector('.tooltip');
     if (tooltip) {
@@ -119,7 +141,7 @@ function hideTooltip() {
     }
 }
 
-// Open sponsor modal when mile is clicked
+// Open sponsor modal
 const modal = document.getElementById("sponsorModal");
 const closeModal = document.querySelector(".close");
 
@@ -150,20 +172,14 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     logDebug(`📤 Submitting sponsorship for mile ${formData.mile}`);
 
     try {
-        const response = await fetch(googleScriptURL, {
+        await fetch(googleScriptURL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
-
-        if (response.ok) {
-            alert("Sponsorship submitted successfully!");
-            document.getElementById("sponsorForm").reset();
-            document.getElementById("sponsorModal").style.display = "none";
-            loadSponsorships();
-        } else {
-            logDebug("❌ Error submitting sponsorship.");
-        }
+        alert("Sponsorship submitted!");
+        modal.style.display = "none";
+        loadSponsorships();
     } catch (error) {
         logDebug(`❌ Submission failed: ${error}`);
     }
