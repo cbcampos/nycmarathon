@@ -182,29 +182,46 @@ document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[r
 document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Gather form data
     const formData = {
         mile: document.getElementById("mileNumber").textContent,
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        message: document.getElementById("message").value,
-        amount: document.getElementById("amount").value
+        firstName: document.getElementById("firstName").value.trim(),
+        lastName: document.getElementById("lastName").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        phone: document.getElementById("phone").value.trim(),
+        message: document.getElementById("message").value.trim(),
+        amount: document.getElementById("amount").value.trim()
     };
 
+    // Debugging: Log data to console
+    console.log("Submitting Form Data:", JSON.stringify(formData));
+
     try {
-        await fetch(googleScriptURL, {
+        const response = await fetch(googleScriptURL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
 
-        alert("Sponsorship submitted!");
-        modal.style.display = "none";
-        document.body.style.overflow = "auto";
-        loadSponsorships();
+        if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+        }
+
+        const responseData = await response.json();
+        console.log("Server Response:", responseData);
+
+        if (responseData.success) {
+            alert("Sponsorship submitted successfully!");
+            document.getElementById("sponsorForm").reset();
+            modal.classList.add("hidden");
+            document.body.style.overflow = "auto";
+            loadSponsorships(); // Refresh sponsorships
+        } else {
+            throw new Error(responseData.error || "Unknown server error");
+        }
     } catch (error) {
-        alert("Error submitting sponsorship. Try again.");
+        console.error("Submission Failed:", error);
+        alert("Error submitting sponsorship. Please try again.");
     }
 });
 
