@@ -212,17 +212,36 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     logDebug("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
 
     try {
-        const response = await fetch(googleScriptURL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            mode: "cors",
-            credentials: "omit",
-            body: JSON.stringify(formData)
+        // Create a form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = googleScriptURL;
+        form.target = 'hidden_iframe';
+
+        // Add form data as hidden fields
+        Object.entries(formData).forEach(([key, value]) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = value;
+            form.appendChild(input);
         });
 
-        if (!response.ok) {
-            throw new Error(`HTTP Error: ${response.status}`);
-        }
+        // Create hidden iframe
+        const iframe = document.createElement('iframe');
+        iframe.name = 'hidden_iframe';
+        iframe.style.display = 'none';
+        document.body.appendChild(iframe);
+
+        // Add form to document and submit
+        document.body.appendChild(form);
+        form.submit();
+
+        // Clean up after submission
+        setTimeout(() => {
+            document.body.removeChild(form);
+            document.body.removeChild(iframe);
+        }, 1000);
 
         alert("🎉 Sponsorship submitted successfully!");
         modal.style.display = "none";
