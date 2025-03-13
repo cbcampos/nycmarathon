@@ -2,6 +2,9 @@ const googleScriptURL = "https://script.google.com/macros/s/AKfycbyUibrVxkBz6Bwm
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
+const modal = document.getElementById("sponsorModal");
+const closeModal = document.querySelector(".close");
+const submitButton = document.querySelector(".submit-button");
 
 // Define mile positions
 const miles = Array.from({ length: 26 }, (_, i) => ({
@@ -36,7 +39,6 @@ function setupDebugging() {
     }
 }
 
-// Log messages to console and debug area
 function logDebug(message) {
     console.log(message);
     let debugArea = document.getElementById("debugArea");
@@ -142,17 +144,38 @@ function hideTooltip() {
 }
 
 // Open sponsor modal
-const modal = document.getElementById("sponsorModal");
-const closeModal = document.querySelector(".close");
-
 function openSponsorModal(mile) {
     document.getElementById("mileNumber").textContent = mile;
-    modal.style.display = "block";
-    logDebug(`📝 Opening sponsor form for mile ${mile}`);
+    modal.style.display = "flex"; // Show modal
+    document.body.style.overflow = "hidden"; // Prevent background scrolling
+    validateForm(); // Ensure the submit button is properly disabled if fields are empty
 }
 
+// Close modal
 closeModal.addEventListener("click", () => {
     modal.style.display = "none";
+    document.body.style.overflow = "auto"; // Restore background scrolling
+});
+
+// Close modal when clicking outside the form
+window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+        modal.style.display = "none";
+        document.body.style.overflow = "auto";
+    }
+});
+
+// Validate form before enabling submit button
+function validateForm() {
+    const requiredFields = document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[required]");
+    let allFilled = Array.from(requiredFields).every(field => field.value.trim() !== "");
+
+    submitButton.disabled = !allFilled;
+}
+
+// Attach validation to required fields
+document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[required]").forEach(field => {
+    field.addEventListener("input", validateForm);
 });
 
 // Handle form submission
@@ -169,24 +192,21 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         amount: document.getElementById("amount").value
     };
 
-    logDebug(`📤 Submitting sponsorship for mile ${formData.mile}`);
-
     try {
         await fetch(googleScriptURL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(formData)
         });
+
         alert("Sponsorship submitted!");
         modal.style.display = "none";
+        document.body.style.overflow = "auto";
         loadSponsorships();
     } catch (error) {
-        logDebug(`❌ Submission failed: ${error}`);
+        alert("Error submitting sponsorship. Try again.");
     }
 });
 
-// Load sponsorships when the page loads
-document.addEventListener("DOMContentLoaded", () => {
-    logDebug("🌍 Page loaded. Fetching sponsorship data...");
-    loadSponsorships();
-});
+// Load sponsorships when page loads
+document.addEventListener("DOMContentLoaded", loadSponsorships);
