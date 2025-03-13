@@ -48,7 +48,6 @@ function pixelToPercentage(x, y) {
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
-        const response = await fetch(googleScriptURL, { mode: "cors" });
         const response = await fetch(googleScriptURL, { 
             mode: "cors",
             credentials: "omit"
