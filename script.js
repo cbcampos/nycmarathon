@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzCGBJE-hdJIGVrpZrNbuIKfHkjYi214BkFyC-AhHtb1lKW9SALXzaNnLBTvPiPrQznzw/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbzNvrwrZRcX8M2Vy7H3u1l3nTgZ97-hboVxnNnJRn2kbmaaRNihf1oWzmpAA-CAOk7jgg/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -48,16 +48,35 @@ function pixelToPercentage(x, y) {
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
-        const response = await fetch(googleScriptURL, { 
-            mode: "cors",
-            credentials: "omit"
+        // Create a unique callback name
+        const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
+        
+        // Create a script element
+        const script = document.createElement('script');
+        script.src = `${googleScriptURL}?callback=${callbackName}`;
+        
+        // Create a promise that will resolve when the callback is called
+        const sponsorshipsPromise = new Promise((resolve, reject) => {
+            window[callbackName] = (data) => {
+                resolve(data);
+                // Clean up
+                document.body.removeChild(script);
+                delete window[callbackName];
+            };
+            
+            script.onerror = () => {
+                reject(new Error('Script loading failed'));
+                // Clean up
+                document.body.removeChild(script);
+                delete window[callbackName];
+            };
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const sponsorships = await response.json();
+        
+        // Add the script to the document
+        document.body.appendChild(script);
+        
+        // Wait for the data
+        const sponsorships = await sponsorshipsPromise;
         logDebug("✅ Sponsorship data loaded:", sponsorships);
 
         let totalRaised = 0;
