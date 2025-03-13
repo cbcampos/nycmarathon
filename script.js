@@ -3,33 +3,28 @@ const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
 
-// Define the miles with their pixel positions
-const miles = Array.from({ length: 26 }, (_, i) => ({
-    number: i + 1,
-    coords: pixelToPercentage([
-        321, 492, 680, 910, 1130, 1322, 1522, 1715, 1820, 2005,
-        2130, 2340, 2507, 2665, 2760, 2760, 2965, 3190, 3430, 3648,
-        3690, 3485, 3265, 3060, 2865, 2790
-    ][i], [
-        1175, 1282, 1200, 1170, 1220, 1260, 1275, 1260, 1410, 1265,
-        1230, 1260, 1150, 1075, 1125, 915, 890, 890, 890, 920,
-        770, 725, 725, 710, 710, 625
-    ][i])
-}));
-
-// Convert pixel positions to percentage
-function pixelToPercentage(x, y) {
-    return {
-        left: `${((x - 64) / 4001) * 100}%`,
-        top: `${((y - 76) / 1817) * 100}%`
-    };
+// Debug area (creates an element if not already on the page)
+function setupDebugging() {
+    let debugArea = document.getElementById("debugArea");
+    if (!debugArea) {
+        debugArea = document.createElement("div");
+        debugArea.id = "debugArea";
+        debugArea.style = "background:#f8f8f8; padding:10px; border:1px solid #ccc; margin-top:10px; max-height:200px; overflow-y:auto; font-size:12px;";
+        document.body.appendChild(debugArea);
+    }
 }
 
-// Debugging: Log messages to the page and console
+// Function to log debug messages to console and on the page
 function logDebug(message) {
-    console.log(message);
-    document.getElementById('debugArea').innerHTML += `<p>${message}</p>`;
+    console.log(message); // Logs in the browser console
+    let debugArea = document.getElementById("debugArea");
+    if (debugArea) {
+        debugArea.innerHTML += `<p>${message}</p>`;
+    }
 }
+
+// Initialize the debugging display
+setupDebugging();
 
 // Fetch sponsorship data from Google Sheets
 async function loadSponsorships() {
@@ -42,7 +37,7 @@ async function loadSponsorships() {
         }
 
         const sponsorships = await response.json();
-        logDebug("✅ Sponsorship data loaded:", sponsorships);
+        logDebug("✅ Sponsorship data loaded: " + JSON.stringify(sponsorships, null, 2));
 
         let totalRaised = 0;
         miles.forEach(mile => {
@@ -50,7 +45,7 @@ async function loadSponsorships() {
                 mile.sponsored = true;
                 mile.sponsor = sponsorships[mile.number].sponsor;
                 mile.message = sponsorships[mile.number].message;
-                totalRaised += parseInt(sponsorships[mile.number].amount || 100);  // Default $100 if not provided
+                totalRaised += parseInt(sponsorships[mile.number].amount || 100);
             } else {
                 mile.sponsored = false;
             }
