@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzHXG0f38e-7tUYk1q97EON3ezfJcFsZHnA2BcOgdNRnwC2xAJO9QQNJGzSUSY8gRvzPA/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbyot7AcRAEjYTWHxyBUfh1VBmU_7H8aP7B4vNHXaU0kqH3ysX0_FYJkUDZ0aFVg2pC1fQ/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -6,7 +6,23 @@ const modal = document.getElementById("sponsorModal");
 const closeModal = document.querySelector(".close");
 const submitButton = document.querySelector(".submit-button");
 
-// Define mile positions (in percentage based on original map)
+// Debugging function
+function logDebug(message) {
+    console.log(message);
+    const debugPanel = document.getElementById("debug-log");
+    if (debugPanel) {
+        debugPanel.innerHTML += `<br>🟢 ${message}`;
+        debugPanel.scrollTop = debugPanel.scrollHeight; // Auto-scroll
+    }
+}
+
+// Toggle debug panel visibility
+function toggleDebugPanel() {
+    const panel = document.getElementById("debug-panel");
+    panel.style.display = (panel.style.display === "none") ? "block" : "none";
+}
+
+// Define mile positions
 const miles = Array.from({ length: 26 }, (_, i) => ({
     number: i + 1,
     coords: pixelToPercentage([
@@ -28,16 +44,11 @@ function pixelToPercentage(x, y) {
     };
 }
 
-// Debugging helper
-function logDebug(message) {
-    console.log(message);
-}
-
 // Fetch sponsorship data
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
-        const response = await fetch(`${googleScriptURL}?action=getSponsorshipData`, { mode: "cors" });
+        const response = await fetch(googleScriptURL, { mode: "cors" });
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
@@ -190,18 +201,9 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
             throw new Error(`HTTP Error: ${response.status}`);
         }
 
-        const responseData = await response.json();
-        logDebug("✅ Server Response:", responseData);
-
-        if (responseData.success) {
-            alert("🎉 Sponsorship submitted successfully!");
-            document.getElementById("sponsorForm").reset();
-            modal.style.display = "none";
-            document.body.style.overflow = "auto";
-            loadSponsorships();
-        } else {
-            throw new Error(responseData.error || "Unknown server error");
-        }
+        alert("🎉 Sponsorship submitted successfully!");
+        modal.style.display = "none";
+        loadSponsorships();
     } catch (error) {
         logDebug("❌ Submission Failed:", error);
         alert("Error submitting sponsorship. Check console for details.");
