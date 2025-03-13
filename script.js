@@ -3,15 +3,26 @@ const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
 
-if (!mileContainer) {
-    console.error("Error: mile-markers container not found in the DOM.");
+// Create a debug area
+const debugArea = document.createElement("div");
+debugArea.id = "debugArea";
+debugArea.style.background = "#f8d7da";
+debugArea.style.color = "#721c24";
+debugArea.style.padding = "10px";
+debugArea.style.margin = "10px";
+debugArea.style.border = "1px solid #f5c6cb";
+debugArea.style.fontFamily = "monospace";
+document.body.insertBefore(debugArea, document.body.firstChild);
+
+function logDebug(message) {
+    debugArea.innerHTML += `<p>${message}</p>`;
+    console.log(message);
 }
 
-// Tooltip setup
-const tooltip = document.createElement("div");
-tooltip.classList.add("tooltip");
-document.body.appendChild(tooltip);
-let activeTooltip = null;
+// Check if required elements exist
+if (!mileContainer) {
+    logDebug("❌ Error: mile-markers container not found in the DOM.");
+}
 
 // Convert pixel positions to percentages for responsive scaling
 const pixelToPercentage = (x, y) => ({
@@ -19,7 +30,7 @@ const pixelToPercentage = (x, y) => ({
     top: `${((y - 76) / 1817) * 100}%`
 });
 
-// Define initial mile positions
+// Define mile positions
 const miles = Array.from({ length: 26 }, (_, i) => ({
     number: i + 1,
     coords: pixelToPercentage([
@@ -33,12 +44,18 @@ const miles = Array.from({ length: 26 }, (_, i) => ({
     ][i])
 }));
 
+logDebug(`✅ Loaded mile positions.`);
+
 // Fetch sponsorships from Google Sheets
 async function loadSponsorships() {
+    logDebug("🔄 Fetching sponsorship data...");
     try {
         const response = await fetch(`${googleScriptURL}?action=getSponsorshipData`);
         const sponsorships = await response.json();
         let totalRaised = 0;
+
+        logDebug("✅ Sponsorship data loaded from Google Sheets:");
+        logDebug(JSON.stringify(sponsorships, null, 2));
 
         miles.forEach(mile => {
             if (sponsorships[mile.number]) {
@@ -56,7 +73,7 @@ async function loadSponsorships() {
         updateProgressBar(totalRaised);
         renderMileMarkers();
     } catch (error) {
-        console.error("Error loading sponsorships:", error);
+        logDebug(`❌ Error loading sponsorships: ${error}`);
     }
 }
 
@@ -66,12 +83,14 @@ function updateProgressBar(totalRaised) {
     progressText.textContent = `$${totalRaised} raised so far`;
     const percentage = (totalRaised / goalAmount) * 100;
     progressFill.style.width = `${percentage}%`;
+    logDebug(`🔄 Updating progress bar: $${totalRaised} raised so far (${percentage.toFixed(2)}%)`);
 }
 
 // Render mile markers dynamically
 function renderMileMarkers() {
     if (!mileContainer) return;
     mileContainer.innerHTML = ""; // Clear existing markers
+    logDebug("🔄 Rendering mile markers...");
 
     miles.forEach(mile => {
         const marker = document.createElement("div");
@@ -92,11 +111,12 @@ function renderMileMarkers() {
 
         mileContainer.appendChild(marker);
     });
+
+    logDebug(`✅ Rendered ${miles.length} mile markers.`);
 }
 
 // Show tooltip
 function showTooltip(event, mile) {
-    activeTooltip = mile;
     tooltip.innerHTML = mile.sponsored
         ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`
         : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
@@ -109,7 +129,6 @@ function showTooltip(event, mile) {
 // Hide tooltip
 function hideTooltip() {
     tooltip.style.display = "none";
-    activeTooltip = null;
 }
 
 // Open sponsor modal
@@ -120,6 +139,7 @@ function openSponsorModal(mile) {
     document.getElementById("mileNumber").textContent = mile;
     modal.style.display = "block";
     tooltip.style.display = "none";
+    logDebug(`📝 Opening sponsor form for mile ${mile}`);
 }
 
 closeModal.addEventListener("click", () => {
@@ -140,6 +160,8 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         amount: document.getElementById("amount").value
     };
 
+    logDebug(`📤 Submitting sponsorship for mile ${formData.mile}`);
+
     try {
         const response = await fetch(googleScriptURL, {
             method: "POST",
@@ -151,15 +173,17 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
             alert("Sponsorship submitted successfully!");
             document.getElementById("sponsorForm").reset();
             document.getElementById("sponsorModal").style.display = "none";
-            loadSponsorships(); // Refresh sponsorships from the sheet
+            loadSponsorships();
         } else {
-            alert("Error submitting sponsorship.");
+            logDebug("❌ Error submitting sponsorship.");
         }
     } catch (error) {
-        console.error("Error:", error);
-        alert("Submission failed. Please try again.");
+        logDebug(`❌ Submission failed: ${error}`);
     }
 });
 
-// Load sponsorships when the page loads
-document.addEventListener("DOMContentLoaded", loadSponsorships);
+// Load sponsorships on page load
+document.addEventListener("DOMContentLoaded", () => {
+    logDebug("🌍 Page loaded. Fetching sponsorship data...");
+    loadSponsorships();
+});
