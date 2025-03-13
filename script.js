@@ -1,5 +1,7 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbzhAX6DHWJSYgCXlavph0pBDu6Xa_yVpbRcEjIIgDGZS6l5C0-QPOD7obUnF1OL-KfQ/exec";
 const mileContainer = document.getElementById("mile-markers");
+
+// Tooltip setup
 const tooltip = document.createElement("div");
 tooltip.classList.add("tooltip");
 document.body.appendChild(tooltip);
@@ -12,34 +14,18 @@ const pixelToPercentage = (x, y) => ({
 });
 
 // Define initial mile positions
-const miles = [
-    { number: 1, coords: pixelToPercentage(321, 1175) },
-    { number: 2, coords: pixelToPercentage(492, 1282) },
-    { number: 3, coords: pixelToPercentage(680, 1200) },
-    { number: 4, coords: pixelToPercentage(910, 1170) },
-    { number: 5, coords: pixelToPercentage(1130, 1220) },
-    { number: 6, coords: pixelToPercentage(1322, 1260) },
-    { number: 7, coords: pixelToPercentage(1522, 1275) },
-    { number: 8, coords: pixelToPercentage(1715, 1260) },
-    { number: 9, coords: pixelToPercentage(1820, 1410) },
-    { number: 10, coords: pixelToPercentage(2005, 1265) },
-    { number: 11, coords: pixelToPercentage(2130, 1230) },
-    { number: 12, coords: pixelToPercentage(2340, 1260) },
-    { number: 13, coords: pixelToPercentage(2507, 1150) },
-    { number: 14, coords: pixelToPercentage(2665, 1075) },
-    { number: 15, coords: pixelToPercentage(2760, 1125) },
-    { number: 16, coords: pixelToPercentage(2760, 915) },
-    { number: 17, coords: pixelToPercentage(2965, 890) },
-    { number: 18, coords: pixelToPercentage(3190, 890) },
-    { number: 19, coords: pixelToPercentage(3430, 890) },
-    { number: 20, coords: pixelToPercentage(3648, 920) },
-    { number: 21, coords: pixelToPercentage(3690, 770) },
-    { number: 22, coords: pixelToPercentage(3485, 725) },
-    { number: 23, coords: pixelToPercentage(3265, 725) },
-    { number: 24, coords: pixelToPercentage(3060, 710) },
-    { number: 25, coords: pixelToPercentage(2865, 710) },
-    { number: 26, coords: pixelToPercentage(2790, 625) }
-];
+const miles = Array.from({ length: 26 }, (_, i) => ({
+    number: i + 1,
+    coords: pixelToPercentage([
+        321, 492, 680, 910, 1130, 1322, 1522, 1715, 1820, 2005,
+        2130, 2340, 2507, 2665, 2760, 2760, 2965, 3190, 3430, 3648,
+        3690, 3485, 3265, 3060, 2865, 2790
+    ][i], [
+        1175, 1282, 1200, 1170, 1220, 1260, 1275, 1260, 1410, 1265,
+        1230, 1260, 1150, 1075, 1125, 915, 890, 890, 890, 920,
+        770, 725, 725, 710, 710, 625
+    ][i])
+}));
 
 // Fetch sponsorships from Google Sheets
 async function loadSponsorships() {
@@ -67,6 +53,7 @@ async function loadSponsorships() {
 
 // Render mile markers dynamically
 function renderMileMarkers() {
+    if (!mileContainer) return;
     mileContainer.innerHTML = ""; // Clear existing markers
 
     miles.forEach(mile => {
@@ -136,26 +123,15 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         amount: document.getElementById("amount").value
     };
 
-    try {
-        const response = await fetch(googleScriptURL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData)
-        });
+    await fetch(googleScriptURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData)
+    });
 
-        if (response.ok) {
-            alert("Sponsorship submitted successfully!");
-            document.getElementById("sponsorForm").reset();
-            document.getElementById("sponsorModal").style.display = "none";
-            loadSponsorships(); // Refresh sponsorships from the sheet
-        } else {
-            alert("Error submitting sponsorship.");
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        alert("Submission failed. Please try again.");
-    }
+    modal.style.display = "none";
+    loadSponsorships();
 });
 
-// Load sponsorships when the page loads
+// Load sponsorships on page load
 document.addEventListener("DOMContentLoaded", loadSponsorships);
