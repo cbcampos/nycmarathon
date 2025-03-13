@@ -1,16 +1,10 @@
-const miles = [
-    { number: 1, left: "8%", top: "65%", sponsored: true, sponsor: "AC Campos", message: "Start strong! You've got this!" },
-    { number: 23, left: "82%", top: "40%", sponsored: true, sponsor: "Haley Flanery", message: "You're almost there! Push to the finish!" }
-];
-
-// Convert pixel locations to percentage-based positions for responsiveness
 const pixelToPercentage = (x, y) => ({
-    left: `${(x / 4001) * 100}%`,
-    top: `${(y / 1817) * 100}%`
+    left: `${((x - 64) / 4001) * 100}%`,
+    top: `${((y - 76) / 1817) * 100}%`
 });
 
-const milePositions = [
-    { number: 1, coords: pixelToPercentage(321, 1175) },
+const miles = [
+    { number: 1, coords: pixelToPercentage(321, 1175), sponsored: true, sponsor: "AC Campos", message: "Start strong! You've got this!" },
     { number: 2, coords: pixelToPercentage(492, 1282) },
     { number: 3, coords: pixelToPercentage(680, 1200) },
     { number: 4, coords: pixelToPercentage(910, 1170) },
@@ -32,22 +26,11 @@ const milePositions = [
     { number: 20, coords: pixelToPercentage(3648, 920) },
     { number: 21, coords: pixelToPercentage(3690, 770) },
     { number: 22, coords: pixelToPercentage(3485, 725) },
-    { number: 23, coords: pixelToPercentage(3265, 725) },
+    { number: 23, coords: pixelToPercentage(3265, 725), sponsored: true, sponsor: "Haley Flanery", message: "You're almost there! Push to the finish!" },
     { number: 24, coords: pixelToPercentage(3060, 710) },
     { number: 25, coords: pixelToPercentage(2865, 710) },
     { number: 26, coords: pixelToPercentage(2790, 625) }
 ];
-
-// Merge positions into miles array
-milePositions.forEach(milePos => {
-    const existingMile = miles.find(m => m.number === milePos.number);
-    if (!existingMile) {
-        miles.push({ number: milePos.number, ...milePos.coords, sponsored: false });
-    } else {
-        existingMile.left = milePos.coords.left;
-        existingMile.top = milePos.coords.top;
-    }
-});
 
 const mileContainer = document.getElementById("mile-markers");
 const tooltip = document.createElement("div");
@@ -62,8 +45,8 @@ miles.forEach(mile => {
     marker.classList.add("mile-marker", mile.sponsored ? "sponsored" : "needed");
     marker.textContent = mile.number;
     marker.dataset.mile = mile.number;
-    marker.style.left = mile.left;
-    marker.style.top = mile.top;
+    marker.style.left = mile.coords.left;
+    marker.style.top = mile.coords.top;
 
     marker.addEventListener("mouseover", (event) => showTooltip(event, mile));
     marker.addEventListener("mouseout", () => hideTooltip());
