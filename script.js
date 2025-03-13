@@ -32,12 +32,14 @@ async function loadSponsorships() {
     try {
         const response = await fetch(`${googleScriptURL}?action=getSponsorshipData`);
         const sponsorships = await response.json();
+        let totalRaised = 0;
 
         miles.forEach(mile => {
             if (sponsorships[mile.number]) {
                 mile.sponsored = true;
                 mile.sponsor = sponsorships[mile.number].sponsor;
                 mile.message = sponsorships[mile.number].message;
+                totalRaised += 100; // Assume $100 per sponsorship
             } else {
                 mile.sponsored = false;
                 mile.sponsor = null;
@@ -45,10 +47,21 @@ async function loadSponsorships() {
             }
         });
 
+        updateProgressBar(totalRaised);
         renderMileMarkers();
     } catch (error) {
         console.error("Error loading sponsorships:", error);
     }
+}
+
+// Update fundraising progress bar
+function updateProgressBar(totalRaised) {
+    const progressText = document.getElementById("amountRaised");
+    const progressFill = document.querySelector(".progress-fill");
+    
+    progressText.textContent = `$${totalRaised} raised so far`;
+    const percentage = (totalRaised / 2600) * 100;
+    progressFill.style.width = `${percentage}%`;
 }
 
 // Render mile markers dynamically
@@ -76,62 +89,6 @@ function renderMileMarkers() {
         mileContainer.appendChild(marker);
     });
 }
-
-// Show tooltip
-function showTooltip(event, mile) {
-    activeTooltip = mile;
-    tooltip.innerHTML = mile.sponsored
-        ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`
-        : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
-
-    tooltip.style.left = `${event.pageX + 10}px`;
-    tooltip.style.top = `${event.pageY + 10}px`;
-    tooltip.style.display = "block";
-}
-
-// Hide tooltip
-function hideTooltip() {
-    tooltip.style.display = "none";
-    activeTooltip = null;
-}
-
-// Open sponsor modal
-const modal = document.getElementById("sponsorModal");
-const closeModal = document.querySelector(".close");
-
-function openSponsorModal(mile) {
-    document.getElementById("mileNumber").textContent = mile;
-    modal.style.display = "block";
-    tooltip.style.display = "none";
-}
-
-closeModal.addEventListener("click", () => {
-    modal.style.display = "none";
-});
-
-// Handle form submission
-document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const formData = {
-        mile: document.getElementById("mileNumber").textContent,
-        firstName: document.getElementById("firstName").value,
-        lastName: document.getElementById("lastName").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        message: document.getElementById("message").value,
-        amount: document.getElementById("amount").value
-    };
-
-    await fetch(googleScriptURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData)
-    });
-
-    modal.style.display = "none";
-    loadSponsorships();
-});
 
 // Load sponsorships on page load
 document.addEventListener("DOMContentLoaded", loadSponsorships);
