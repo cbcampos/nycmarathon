@@ -1,5 +1,11 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbzhAX6DHWJSYgCXlavph0pBDu6Xa_yVpbRcEjIIgDGZS6l5C0-QPOD7obUnF1OL-KfQ/exec";
 const mileContainer = document.getElementById("mile-markers");
+const progressText = document.getElementById("amountRaised");
+const progressFill = document.querySelector(".progress-fill");
+
+if (!mileContainer) {
+    console.error("Error: mile-markers container not found in the DOM.");
+}
 
 // Tooltip setup
 const tooltip = document.createElement("div");
@@ -39,7 +45,7 @@ async function loadSponsorships() {
                 mile.sponsored = true;
                 mile.sponsor = sponsorships[mile.number].sponsor;
                 mile.message = sponsorships[mile.number].message;
-                totalRaised += 100; // Assume $100 per sponsorship
+                totalRaised += parseInt(sponsorships[mile.number].amount || 100); // Default $100 per mile
             } else {
                 mile.sponsored = false;
                 mile.sponsor = null;
@@ -56,11 +62,9 @@ async function loadSponsorships() {
 
 // Update fundraising progress bar
 function updateProgressBar(totalRaised) {
-    const progressText = document.getElementById("amountRaised");
-    const progressFill = document.querySelector(".progress-fill");
-    
+    const goalAmount = 2600;
     progressText.textContent = `$${totalRaised} raised so far`;
-    const percentage = (totalRaised / 2600) * 100;
+    const percentage = (totalRaised / goalAmount) * 100;
     progressFill.style.width = `${percentage}%`;
 }
 
@@ -90,5 +94,72 @@ function renderMileMarkers() {
     });
 }
 
-// Load sponsorships on page load
+// Show tooltip
+function showTooltip(event, mile) {
+    activeTooltip = mile;
+    tooltip.innerHTML = mile.sponsored
+        ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`
+        : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
+
+    tooltip.style.left = `${event.pageX + 10}px`;
+    tooltip.style.top = `${event.pageY + 10}px`;
+    tooltip.style.display = "block";
+}
+
+// Hide tooltip
+function hideTooltip() {
+    tooltip.style.display = "none";
+    activeTooltip = null;
+}
+
+// Open sponsor modal
+const modal = document.getElementById("sponsorModal");
+const closeModal = document.querySelector(".close");
+
+function openSponsorModal(mile) {
+    document.getElementById("mileNumber").textContent = mile;
+    modal.style.display = "block";
+    tooltip.style.display = "none";
+}
+
+closeModal.addEventListener("click", () => {
+    modal.style.display = "none";
+});
+
+// Handle form submission
+document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const formData = {
+        mile: document.getElementById("mileNumber").textContent,
+        firstName: document.getElementById("firstName").value,
+        lastName: document.getElementById("lastName").value,
+        email: document.getElementById("email").value,
+        phone: document.getElementById("phone").value,
+        message: document.getElementById("message").value,
+        amount: document.getElementById("amount").value
+    };
+
+    try {
+        const response = await fetch(googleScriptURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+            alert("Sponsorship submitted successfully!");
+            document.getElementById("sponsorForm").reset();
+            document.getElementById("sponsorModal").style.display = "none";
+            loadSponsorships(); // Refresh sponsorships from the sheet
+        } else {
+            alert("Error submitting sponsorship.");
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("Submission failed. Please try again.");
+    }
+});
+
+// Load sponsorships when the page loads
 document.addEventListener("DOMContentLoaded", loadSponsorships);
