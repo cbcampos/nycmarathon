@@ -1,36 +1,9 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzhAX6DHWJSYgCXlavph0pBDu6Xa_yVpbRcEjIIgDGZS6l5C0-QPOD7obUnF1OL-KfQ/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbyUibrVxkBz6BwmwRIBEgMHoYXMOhbRUW6mckIespeTlz8rrWZVX8YnbhZQhl3RZ2Gs/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
 
-// Create a debug area
-const debugArea = document.createElement("div");
-debugArea.id = "debugArea";
-debugArea.style.background = "#f8d7da";
-debugArea.style.color = "#721c24";
-debugArea.style.padding = "10px";
-debugArea.style.margin = "10px";
-debugArea.style.border = "1px solid #f5c6cb";
-debugArea.style.fontFamily = "monospace";
-document.body.insertBefore(debugArea, document.body.firstChild);
-
-function logDebug(message) {
-    debugArea.innerHTML += `<p>${message}</p>`;
-    console.log(message);
-}
-
-// Check if required elements exist
-if (!mileContainer) {
-    logDebug("❌ Error: mile-markers container not found in the DOM.");
-}
-
-// Convert pixel positions to percentages for responsive scaling
-const pixelToPercentage = (x, y) => ({
-    left: `${((x - 64) / 4001) * 100}%`,
-    top: `${((y - 76) / 1817) * 100}%`
-});
-
-// Define mile positions
+// Define the miles with their pixel positions
 const miles = Array.from({ length: 26 }, (_, i) => ({
     number: i + 1,
     coords: pixelToPercentage([
@@ -44,49 +17,62 @@ const miles = Array.from({ length: 26 }, (_, i) => ({
     ][i])
 }));
 
-logDebug(`✅ Loaded mile positions.`);
+// Convert pixel positions to percentage
+function pixelToPercentage(x, y) {
+    return {
+        left: `${((x - 64) / 4001) * 100}%`,
+        top: `${((y - 76) / 1817) * 100}%`
+    };
+}
 
-// Fetch sponsorships from Google Sheets
+// Debugging: Log messages to the page and console
+function logDebug(message) {
+    console.log(message);
+    document.getElementById('debugArea').innerHTML += `<p>${message}</p>`;
+}
+
+// Fetch sponsorship data from Google Sheets
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
         const response = await fetch(`${googleScriptURL}?action=getSponsorshipData`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
         const sponsorships = await response.json();
+        logDebug("✅ Sponsorship data loaded:", sponsorships);
+
         let totalRaised = 0;
-
-        logDebug("✅ Sponsorship data loaded from Google Sheets:");
-        logDebug(JSON.stringify(sponsorships, null, 2));
-
         miles.forEach(mile => {
             if (sponsorships[mile.number]) {
                 mile.sponsored = true;
                 mile.sponsor = sponsorships[mile.number].sponsor;
                 mile.message = sponsorships[mile.number].message;
-                totalRaised += parseInt(sponsorships[mile.number].amount || 100); // Default $100 per mile
+                totalRaised += parseInt(sponsorships[mile.number].amount || 100);  // Default $100 if not provided
             } else {
                 mile.sponsored = false;
-                mile.sponsor = null;
-                mile.message = null;
             }
         });
 
         updateProgressBar(totalRaised);
         renderMileMarkers();
     } catch (error) {
-        logDebug(`❌ Error loading sponsorships: ${error}`);
+        logDebug(`❌ Error loading sponsorships: ${error.message}`);
     }
 }
 
-// Update fundraising progress bar
+// Update the fundraising progress bar
 function updateProgressBar(totalRaised) {
     const goalAmount = 2600;
     progressText.textContent = `$${totalRaised} raised so far`;
     const percentage = (totalRaised / goalAmount) * 100;
     progressFill.style.width = `${percentage}%`;
-    logDebug(`🔄 Updating progress bar: $${totalRaised} raised so far (${percentage.toFixed(2)}%)`);
+    logDebug(`🔄 Progress bar updated: $${totalRaised} raised so far (${percentage.toFixed(2)}%)`);
 }
 
-// Render mile markers dynamically
+// Render mile markers on the map
 function renderMileMarkers() {
     if (!mileContainer) return;
     mileContainer.innerHTML = ""; // Clear existing markers
@@ -115,30 +101,36 @@ function renderMileMarkers() {
     logDebug(`✅ Rendered ${miles.length} mile markers.`);
 }
 
-// Show tooltip
+// Show tooltip for mile marker
 function showTooltip(event, mile) {
+    const tooltip = document.createElement("div");
+    tooltip.classList.add("tooltip");
+
     tooltip.innerHTML = mile.sponsored
         ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`
         : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
 
+    document.body.appendChild(tooltip);
     tooltip.style.left = `${event.pageX + 10}px`;
     tooltip.style.top = `${event.pageY + 10}px`;
     tooltip.style.display = "block";
 }
 
-// Hide tooltip
+// Hide the tooltip when mouse leaves
 function hideTooltip() {
-    tooltip.style.display = "none";
+    const tooltip = document.querySelector('.tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
 }
 
-// Open sponsor modal
+// Open sponsor modal when mile is clicked
 const modal = document.getElementById("sponsorModal");
 const closeModal = document.querySelector(".close");
 
 function openSponsorModal(mile) {
     document.getElementById("mileNumber").textContent = mile;
     modal.style.display = "block";
-    tooltip.style.display = "none";
     logDebug(`📝 Opening sponsor form for mile ${mile}`);
 }
 
@@ -182,7 +174,7 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     }
 });
 
-// Load sponsorships on page load
+// Load sponsorships when the page loads
 document.addEventListener("DOMContentLoaded", () => {
     logDebug("🌍 Page loaded. Fetching sponsorship data...");
     loadSponsorships();
