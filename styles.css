@@ -61,6 +61,7 @@ header {
     color: white;
     font-weight: bold;
     transition: transform 0.2s;
+    font-size: 14px;
 }
 
 .mile-marker:hover {
@@ -294,4 +295,43 @@ textarea {
     background-color: #eaffea;
     border-radius: 10px;
     margin-top: 20px;
+}
+
+/* Mobile Responsive Styles */
+@media screen and (max-width: 768px) {
+    .mile-marker {
+        width: 10px;
+        height: 10px;
+        font-size: 8px;
+    }
+
+    .mile-marker:hover {
+        transform: scale(1.5);
+    }
+
+    .tooltip {
+        padding: 10px;
+        font-size: 14px;
+    }
+
+    .tooltip h3 {
+        font-size: 16px;
+    }
+
+    .tooltip .message {
+        font-size: 12px;
+    }
+}
+
+/* Small Mobile Devices */
+@media screen and (max-width: 480px) {
+    .mile-marker {
+        width: 8px;
+        height: 8px;
+        font-size: 6px;
+    }
+
+    .mile-marker:hover {
+        transform: scale(1.5);
+    }
 }
