@@ -19,10 +19,9 @@
     <div class="container">
         <div class="map-container">
             <img src="nyc-marathon-map.jpg" alt="NYC Marathon Map" class="map-image">
-            <div id="mile-markers"></div> <!-- Required for markers to appear -->
+            <div id="mile-markers"></div>
         </div>
 
-        <!-- Progress Section -->
         <div class="progress-section">
             <div class="progress-text">
                 <div id="amountRaised">$0 raised so far</div>
@@ -31,84 +30,82 @@
             <div class="progress-bar">
                 <div class="progress-fill"></div>
             </div>
-            <div class="progress-amount">
-                26 miles | <span>$2,600</span>
-            </div>
-            <p>Help me reach my goal by sponsoring a mile for $100!</p>
-            <img src="kulturecity-logo.png" alt="KultureCity Logo" class="logo">
-        </div>
-
-        <!-- Thank You Message -->
-        <div class="thank-you" id="thank-you">
-            <h2>Thank You for Your Support!</h2>
-            <p>I'll be in touch soon with instructions on how to complete your donation.</p>
-            <p>Your encouragement means the world to me!</p>
         </div>
     </div>
 
     <!-- Sponsorship Form Modal -->
     <div id="sponsorModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="closeSponsorModal()">&times;</span>
             <h2>Sponsor Mile <span id="mileNumber"></span></h2>
             <p>Your $100 donation helps support inclusion through KultureCity.</p>
-
             <form id="sponsorForm">
                 <div class="form-group">
                     <label for="firstName">First Name *</label>
                     <input type="text" id="firstName" required>
                 </div>
-
                 <div class="form-group">
                     <label for="lastName">Last Name *</label>
                     <input type="text" id="lastName" required>
                 </div>
-
                 <div class="form-group">
                     <label for="email">Email *</label>
                     <input type="email" id="email" required>
                 </div>
-
                 <div class="form-group">
                     <label for="phone">Phone Number *</label>
                     <input type="tel" id="phone" required>
                 </div>
-
                 <div class="form-group">
                     <label for="message">Your Encouraging Message *</label>
                     <textarea id="message" required placeholder="Share words of encouragement!"></textarea>
                 </div>
-
                 <div class="form-group">
                     <label for="amount">Donation Amount *</label>
                     <input type="number" id="amount" min="100" value="100" required>
                     <small>Minimum $100 to sponsor a mile</small>
                 </div>
-
                 <button type="submit" class="submit-button">Submit Sponsorship</button>
             </form>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- 🔥 Debugging Panel -->
+    <div id="debug-panel" style="
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 150px;
+        background: rgba(0,0,0,0.8);
+        color: #0f0;
+        font-size: 14px;
+        font-family: monospace;
+        overflow-y: auto;
+        padding: 5px;
+        z-index: 9999;
+        display: none;
+    ">
+        <strong>Debug Log:</strong>
+        <div id="debug-log"></div>
+    </div>
 
-<div id="debug-panel" style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 150px;
-    background: rgba(0,0,0,0.8);
-    color: #0f0;
-    font-size: 14px;
-    font-family: monospace;
-    overflow-y: auto;
-    padding: 5px;
-    z-index: 9999;
-    display: block;
-">
-    <strong>Debug Log:</strong>
-    <div id="debug-log"></div>
-</div>
+    <!-- Debug Toggle Button -->
+    <button onclick="toggleDebugPanel()" style="
+        position: fixed;
+        bottom: 160px;
+        left: 10px;
+        padding: 5px 10px;
+        background: #0f0;
+        color: black;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+        z-index: 10000;
+    ">
+        Toggle Debug
+    </button>
+
+    <script src="script.js"></script>
 </body>
 </html>
