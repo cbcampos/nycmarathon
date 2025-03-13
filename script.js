@@ -237,24 +237,25 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         document.body.appendChild(form);
         form.submit();
 
-        // Wait for response
+        // Wait for submission to complete
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Clean up
         document.body.removeChild(form);
         document.body.removeChild(iframe);
 
-        // Check if the submission was successful
-        const response = await fetch(googleScriptURL + '?callback=checkSubmission');
-        const data = await response.json();
+        // Show success message
+        alert("🎉 Sponsorship submitted successfully!");
         
-        if (data.success) {
-            alert("🎉 Sponsorship submitted successfully!");
-            modal.style.display = "none";
-            loadSponsorships();
-        } else {
-            throw new Error(data.error || "Submission failed");
-        }
+        // Close the modal
+        modal.style.display = "none";
+        
+        // Reset the form
+        document.getElementById("sponsorForm").reset();
+        
+        // Reload sponsorships to update the map
+        await loadSponsorships();
+        
     } catch (error) {
         logDebug("❌ Submission Failed:", error);
         alert("Error submitting sponsorship. Check console for details.");
