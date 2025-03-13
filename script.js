@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbwdYA4ezxvGRqEIBLBbrf7fnyxzz8fIt6_CDgUaVNia1w_LHoGbzc2fV295FbKhQ-Ct/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbzNvrwrZRcX8M2Vy7H3u1l3nTgZ97-hboVxnNnJRn2kbmaaRNihf1oWzmpAA-CAOk7jgg/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -140,9 +140,18 @@ function showTooltip(event, mile) {
     const tooltip = document.createElement("div");
     tooltip.classList.add("tooltip");
 
-    tooltip.innerHTML = mile.sponsored
-        ? `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`
-        : `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button" onclick="openSponsorModal(${mile.number})">Sponsor This Mile</button>`;
+    if (mile.sponsored) {
+        tooltip.innerHTML = `<h3>Mile ${mile.number} - Sponsored by ${mile.sponsor}</h3><p class="message">"${mile.message}"</p>`;
+    } else {
+        tooltip.innerHTML = `<h3>Mile ${mile.number} - Needs a Sponsor</h3><button class="sponsor-button">Sponsor This Mile</button>`;
+        
+        // Add click event listener to the sponsor button
+        const sponsorButton = tooltip.querySelector('.sponsor-button');
+        sponsorButton.addEventListener('click', () => {
+            openSponsorModal(mile.number);
+            hideTooltip();
+        });
+    }
 
     document.body.appendChild(tooltip);
     tooltip.style.left = `${event.pageX + 10}px`;
