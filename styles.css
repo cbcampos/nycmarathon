@@ -287,6 +287,19 @@ textarea {
     color: #ff3b3b;
 }
 
+/* Logo Container */
+.logo-container {
+    margin-top: 20px;
+    padding: 10px;
+}
+
+.logo {
+    max-width: 200px;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+}
+
 /* Thank You Message */
 .thank-you {
     display: none;
@@ -321,6 +334,10 @@ textarea {
     .tooltip .message {
         font-size: 12px;
     }
+
+    .logo {
+        max-width: 150px;
+    }
 }
 
 /* Small Mobile Devices */
@@ -333,5 +350,9 @@ textarea {
 
     .mile-marker:hover {
         transform: scale(1.5);
+    }
+
+    .logo {
+        max-width: 120px;
     }
 }
