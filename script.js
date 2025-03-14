@@ -111,7 +111,7 @@ async function loadSponsorships() {
 
 // Update progress bar
 function updateProgressBar(totalRaised) {
-    const goalAmount = 2600;
+    const goalAmount = 5000;
     progressText.textContent = `$${totalRaised} raised so far`;
     const percentage = (totalRaised / goalAmount) * 100;
     progressFill.style.width = `${percentage}%`;
