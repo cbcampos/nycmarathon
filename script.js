@@ -686,31 +686,28 @@ function initVideoOverlay() {
     const overlay = document.getElementById('videoOverlay');
     const closeButton = document.querySelector('.close-video');
     const iframe = overlay.querySelector('iframe');
-    const videoSrc = iframe.src;
+    
+    function stopVideo() {
+        // Send stop command to YouTube iframe
+        iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+        overlay.style.display = 'none';
+    }
     
     if (closeButton) {
-        closeButton.addEventListener('click', () => {
-            overlay.style.display = 'none';
-            // Completely stop video playback by removing src
-            iframe.src = '';
-            // Reset src after a brief delay to prepare for next viewing
-            setTimeout(() => {
-                iframe.src = videoSrc;
-            }, 100);
-        });
+        closeButton.addEventListener('click', stopVideo);
     }
 
     // Also close on overlay click (but not video click)
     overlay.addEventListener('click', (e) => {
         if (e.target === overlay) {
-            closeButton.click();
+            stopVideo();
         }
     });
 
     // Close on escape key
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && overlay.style.display !== 'none') {
-            closeButton.click();
+            stopVideo();
         }
     });
 }
