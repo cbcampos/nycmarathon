@@ -811,9 +811,23 @@ async function displayTrainingStats(stats) {
             throw new Error('Invalid training data format');
         }
 
-        logDebug(`✅ Successfully loaded training data: ${stats.totalMiles} miles`);
+        const formattedDate = new Date(stats.lastUpdated).toLocaleDateString('en-US', {
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        logDebug(`✅ Successfully loaded training data: ${stats.totalMiles} miles across ${stats.activityCount} runs`);
         statsContent.innerHTML = `
-            <p class="training-text">Chris has run <span class="miles">${stats.totalMiles}</span> miles in 2025</p>
+            <p class="training-text">
+                Chris has run <span class="miles">${stats.totalMiles}</span> miles in 2025
+                <br>
+                <span class="training-details">
+                    Across ${stats.activityCount} training runs
+                    <br>
+                    <small>Last updated: ${formattedDate}</small>
+                </span>
+            </p>
         `;
     } catch (error) {
         console.error('Error displaying training stats:', error);
