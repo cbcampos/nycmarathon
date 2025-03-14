@@ -358,6 +358,11 @@ const SCROLL_SENSITIVITY = 0.5; // Reduce this value to make scrolling less sens
 
 // Initialize mobile map controls
 function initMobileMapControls() {
+    // Only initialize mobile controls if we're on a mobile device
+    if (window.innerWidth > 768) {
+        return; // Exit if we're on desktop
+    }
+
     // Wrap the map image in a scrollable container
     const mapImage = document.querySelector('.map-image');
     if (!mapImage.parentElement.classList.contains('map-wrapper')) {
@@ -392,34 +397,34 @@ function initMobileMapControls() {
         updateNavigationButtons();
     }
 
-    // Add touch event listeners
+    // Add touch event listeners only on mobile
     const wrapper = document.querySelector('.map-wrapper');
-    
-    wrapper.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        startX = e.touches[0].pageX;
-        startTransform = getCurrentTransform();
-        wrapper.style.transition = 'none';
-    }, { passive: true });
+    if (wrapper) {
+        wrapper.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            startX = e.touches[0].pageX;
+            startTransform = getCurrentTransform();
+            wrapper.style.transition = 'none';
+        }, { passive: true });
 
-    wrapper.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        
-        const x = e.touches[0].pageX;
-        const walk = (x - startX) * SCROLL_SENSITIVITY;
-        const newTransform = startTransform + (walk / wrapper.offsetWidth * 100);
-        
-        // Limit scrolling bounds
-        const limitedTransform = Math.max(Math.min(newTransform, 0), -66.66);
-        setMapPosition(limitedTransform);
-    }, { passive: true });
+        wrapper.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            const x = e.touches[0].pageX;
+            const walk = (x - startX) * SCROLL_SENSITIVITY;
+            const newTransform = startTransform + (walk / wrapper.offsetWidth * 100);
+            
+            // Limit scrolling bounds
+            const limitedTransform = Math.max(Math.min(newTransform, 0), -66.66);
+            setMapPosition(limitedTransform);
+        }, { passive: true });
 
-    wrapper.addEventListener('touchend', () => {
-        isDragging = false;
-        const wrapper = document.querySelector('.map-wrapper');
-        wrapper.style.transition = 'transform 0.3s ease-out';
-        snapToNearestSection();
-    });
+        wrapper.addEventListener('touchend', () => {
+            isDragging = false;
+            wrapper.style.transition = 'transform 0.3s ease-out';
+            snapToNearestSection();
+        });
+    }
 }
 
 // Navigate map sections
@@ -454,10 +459,12 @@ function getCurrentTransform() {
     return matrix.m41 / wrapper.offsetWidth * 100;
 }
 
-// Set map position
+// Set map position - only apply transform on mobile
 function setMapPosition(percentage) {
     const wrapper = document.querySelector('.map-wrapper');
-    wrapper.style.transform = `scale(1.5) translateX(${percentage}%)`;
+    if (window.innerWidth <= 768) {
+        wrapper.style.transform = `scale(1.5) translateX(${percentage}%)`;
+    }
 }
 
 // Snap to nearest section after dragging
