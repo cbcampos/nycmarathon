@@ -66,7 +66,11 @@ async function loadSponsorships() {
         
         // Create a script element
         const script = document.createElement('script');
-        script.src = `${googleScriptURL}&callback=${callbackName}`;
+        
+        // Add callback parameter to URL, ensuring we don't duplicate parameters
+        const url = new URL(googleScriptURL);
+        url.searchParams.set('callback', callbackName);
+        script.src = url.toString();
         
         // Create a promise that will resolve when the callback is called
         const sponsorshipsPromise = new Promise((resolve, reject) => {
@@ -87,17 +91,32 @@ async function loadSponsorships() {
             
             // Setup callback
             window[callbackName] = (data) => {
+                logDebug("📥 Received data from callback");
                 resolve(data);
                 cleanup();
             };
             
             script.onerror = () => {
+                logDebug("❌ Script loading failed");
                 reject(new Error('Script loading failed'));
                 cleanup();
             };
+
+            // Additional error handling
+            script.onload = () => {
+                logDebug("✅ Script loaded successfully");
+                // Set a timeout to check if the callback wasn't called
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        reject(new Error('Callback was not executed'));
+                        cleanup();
+                    }
+                }, 5000);
+            };
         });
         
-        // Add the script to the document
+        // Add script to the document
+        logDebug(`🔗 Loading script from: ${script.src}`);
         document.body.appendChild(script);
         
         // Wait for the data
