@@ -1,5 +1,4 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbzomA0zqHvWvQ1T9-0AxhIFsPAwdZ1YZLVjSWrzUx08bKCQFHNvbgXfWR24etoUPVxAnA/exec";
-
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -734,6 +733,13 @@ function fetchTrainingStats() {
         
         window[callbackName] = (response) => {
             logDebug("📥 Received training data response:", response);
+            
+            // Check if response contains Strava error details
+            if (response && response.error && response.error.includes('Strava')) {
+                logDebug("🔑 Strava API Token Issue:", response.error);
+                console.warn("Strava API Token needs to be refreshed. Error:", response.error);
+            }
+            
             resolve(response);
             // Clean up
             if (script.parentNode) {
@@ -767,7 +773,8 @@ function fetchTrainingStats() {
         }, 5000);
     });
 
-    const url = `${googleScriptURL}?type=training&callback=${callbackName}`;
+    // Add debug parameter to help identify token issues
+    const url = `${googleScriptURL}?type=training&debug=true&callback=${callbackName}`;
     logDebug(`🔗 Loading training data from URL: ${url}`);
     script.src = url;
     document.body.appendChild(script);
