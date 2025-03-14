@@ -17,6 +17,20 @@
     </noscript>
 </head>
 <body>
+    <div id="videoOverlay" class="video-overlay">
+        <div class="video-container">
+            <button class="close-video" aria-label="Close video">&times;</button>
+            <iframe 
+                width="560" 
+                height="315" 
+                src="https://www.youtube.com/embed/K5-Xry14Rag?si=HVLBKrSvD5tsghr0&autoplay=1" 
+                title="KultureCity Video" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen>
+            </iframe>
+        </div>
+    </div>
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <header role="banner">
@@ -59,6 +73,7 @@
                 <div class="bottom-section">
                     <div class="logo-container">
                         <img src="kulturecity-logo.png" alt="KultureCity Logo" class="logo" loading="lazy">
+                        <a href="https://www.kulturecity.org/wp-content/uploads/2025/02/2024-KultureCity-Impact-Report.pdf" target="_blank" rel="noopener noreferrer" class="impact-report-link">View 2024 Impact Report</a>
                     </div>
                     <div class="countdown-container" aria-live="polite">
                         <div class="days-number" id="daysLeft"></div>
