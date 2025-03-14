@@ -367,14 +367,18 @@ function initMobileMapControls() {
     const container = document.querySelector('.map-container');
     if (!wrapper || !container) return;
 
-    // Add zoom controls
-    const zoomControls = document.createElement('div');
-    zoomControls.className = 'zoom-controls';
-    zoomControls.innerHTML = `
-        <button class="zoom-button" id="zoomIn">+</button>
-        <button class="zoom-button" id="zoomOut">−</button>
-    `;
-    container.appendChild(zoomControls);
+    const isMobile = window.innerWidth <= 768;
+    
+    // Only add zoom controls for mobile
+    if (isMobile) {
+        const zoomControls = document.createElement('div');
+        zoomControls.className = 'zoom-controls';
+        zoomControls.innerHTML = `
+            <button class="zoom-button" id="zoomIn">+</button>
+            <button class="zoom-button" id="zoomOut">−</button>
+        `;
+        container.appendChild(zoomControls);
+    }
 
     let isDragging = false;
     let startX = 0;
@@ -385,23 +389,24 @@ function initMobileMapControls() {
     let initialDistance = 0;
     let isZooming = false;
 
-    // Prevent page zoom on double tap
-    document.addEventListener('gesturestart', (e) => e.preventDefault());
-    document.addEventListener('gesturechange', (e) => e.preventDefault());
-    document.addEventListener('gestureend', (e) => e.preventDefault());
-
     // Set initial transform
     function setTransform() {
-        wrapper.style.transform = `scale(${currentScale}) translate(${currentX}px, ${currentY}px)`;
+        if (isMobile) {
+            wrapper.style.transform = `scale(${currentScale}) translate(${currentX}px, ${currentY}px)`;
+        } else {
+            // On desktop, only allow transform during drag
+            wrapper.style.transform = isDragging ? `translate(${currentX}px, ${currentY}px)` : 'none';
+        }
     }
 
-    // Handle zoom
+    // Handle zoom (mobile only)
     function handleZoom(delta, centerX = container.offsetWidth / 2, centerY = container.offsetHeight / 2) {
+        if (!isMobile) return;
+        
         const oldScale = currentScale;
         currentScale = Math.min(Math.max(currentScale + delta, 1), 3);
         
         if (oldScale !== currentScale) {
-            // Adjust position to zoom toward center point
             const scaleRatio = currentScale / oldScale;
             const rect = wrapper.getBoundingClientRect();
             const x = centerX - rect.left;
@@ -410,7 +415,6 @@ function initMobileMapControls() {
             currentX = currentX * scaleRatio - (x * (scaleRatio - 1));
             currentY = currentY * scaleRatio - (y * (scaleRatio - 1));
             
-            // Apply bounds
             applyBounds();
             setTransform();
         }
@@ -430,6 +434,8 @@ function initMobileMapControls() {
 
     // Touch event handlers
     function handleTouchStart(e) {
+        if (!isMobile) return;
+        
         if (e.touches.length === 2) {
             isZooming = true;
             const touch1 = e.touches[0];
@@ -448,6 +454,8 @@ function initMobileMapControls() {
     }
 
     function handleTouchMove(e) {
+        if (!isMobile) return;
+        
         if (isZooming && e.touches.length === 2) {
             const touch1 = e.touches[0];
             const touch2 = e.touches[1];
@@ -472,6 +480,9 @@ function initMobileMapControls() {
         isDragging = false;
         isZooming = false;
         wrapper.style.transition = 'transform 0.3s ease-out';
+        if (!isMobile) {
+            wrapper.style.transform = 'none';
+        }
     }
 
     // Mouse event handlers
@@ -481,6 +492,7 @@ function initMobileMapControls() {
         startX = e.pageX - currentX;
         startY = e.pageY - currentY;
         wrapper.style.transition = 'none';
+        wrapper.style.cursor = 'grabbing';
         e.preventDefault();
     }
 
@@ -495,18 +507,29 @@ function initMobileMapControls() {
     function handleMouseUp() {
         isDragging = false;
         wrapper.style.transition = 'transform 0.3s ease-out';
+        wrapper.style.cursor = 'grab';
+        if (!isMobile) {
+            wrapper.style.transform = 'none';
+        }
     }
 
-    // Zoom button handlers
-    document.getElementById('zoomIn').addEventListener('click', () => handleZoom(0.5));
-    document.getElementById('zoomOut').addEventListener('click', () => handleZoom(-0.5));
+    if (isMobile) {
+        // Prevent page zoom on double tap for mobile
+        document.addEventListener('gesturestart', (e) => e.preventDefault());
+        document.addEventListener('gesturechange', (e) => e.preventDefault());
+        document.addEventListener('gestureend', (e) => e.preventDefault());
 
-    // Mouse wheel zoom
-    container.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const delta = -e.deltaY * 0.01;
-        handleZoom(delta, e.pageX, e.pageY);
-    });
+        // Zoom button handlers
+        document.getElementById('zoomIn')?.addEventListener('click', () => handleZoom(0.5));
+        document.getElementById('zoomOut')?.addEventListener('click', () => handleZoom(-0.5));
+
+        // Mouse wheel zoom
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = -e.deltaY * 0.01;
+            handleZoom(delta, e.pageX, e.pageY);
+        });
+    }
 
     // Touch events
     wrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
