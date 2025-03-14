@@ -116,40 +116,38 @@ function renderMileMarkers() {
     const isMobile = window.innerWidth <= 768;
     const isSmallMobile = window.innerWidth <= 480;
     
-    // Adjust scale based on screen size
-    let scale = 1;
-    if (isSmallMobile) {
-        scale = 0.8;
-    } else if (isMobile) {
-        scale = 0.9;
-    }
-
     miles.forEach(mile => {
         const marker = document.createElement("div");
         marker.classList.add("mile-marker", mile.sponsored ? "sponsored" : "needed");
         marker.textContent = mile.number;
         marker.dataset.mile = mile.number;
 
-        // Convert percentage strings to numbers and apply scaling
-        const left = parseFloat(mile.coords.left);
-        const top = parseFloat(mile.coords.top);
-        
-        marker.style.left = `${left}%`;
-        marker.style.top = `${top}%`;
-        marker.style.transform = `scale(${scale})`;
+        marker.style.left = mile.coords.left;
+        marker.style.top = mile.coords.top;
 
         // Event listeners
-        marker.addEventListener("mouseover", (event) => showTooltip(event, mile));
-        marker.addEventListener("mouseout", () => hideTooltip());
+        marker.addEventListener("mouseover", (event) => {
+            event.stopPropagation();
+            showTooltip(event, mile);
+        });
+        
+        marker.addEventListener("mouseout", (event) => {
+            event.stopPropagation();
+            hideTooltip();
+        });
+        
         marker.addEventListener("touchstart", (event) => {
             event.preventDefault();
+            event.stopPropagation();
             if (!mile.sponsored) {
                 openSponsorModal(mile.number);
             } else {
                 showTooltip(event, mile);
             }
         });
-        marker.addEventListener("click", () => {
+        
+        marker.addEventListener("click", (event) => {
+            event.stopPropagation();
             if (!mile.sponsored) {
                 openSponsorModal(mile.number);
             }
@@ -158,11 +156,13 @@ function renderMileMarkers() {
         mileContainer.appendChild(marker);
     });
 
-    logDebug(`✅ Rendered ${miles.length} mile markers with ${isMobile ? 'mobile' : 'desktop'} scaling`);
+    logDebug(`✅ Rendered ${miles.length} mile markers`);
 }
 
 // Show tooltip
 function showTooltip(event, mile) {
+    hideTooltip(); // Remove any existing tooltip
+    
     const tooltip = document.createElement("div");
     tooltip.classList.add("tooltip");
 
@@ -174,7 +174,7 @@ function showTooltip(event, mile) {
         // Add click event listener to the sponsor button
         const sponsorButton = tooltip.querySelector('.sponsor-button');
         sponsorButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event from bubbling up
+            e.stopPropagation();
             openSponsorModal(mile.number);
             hideTooltip();
         });
@@ -182,19 +182,29 @@ function showTooltip(event, mile) {
 
     document.body.appendChild(tooltip);
     
-    // Position tooltip based on device type
+    // Position tooltip
     if ('ontouchstart' in window) {
-        // For mobile devices, position at the center of the screen
+        // For mobile devices, center in viewport
         tooltip.style.left = '50%';
         tooltip.style.top = '50%';
         tooltip.style.transform = 'translate(-50%, -50%)';
     } else {
-        // For desktop, position near the cursor
-        tooltip.style.left = `${event.pageX + 10}px`;
-        tooltip.style.top = `${event.pageY + 10}px`;
+        // For desktop, position near cursor but ensure it stays in viewport
+        const rect = tooltip.getBoundingClientRect();
+        let left = event.clientX + 10;
+        let top = event.clientY + 10;
+        
+        // Adjust if tooltip would go off screen
+        if (left + rect.width > window.innerWidth) {
+            left = event.clientX - rect.width - 10;
+        }
+        if (top + rect.height > window.innerHeight) {
+            top = event.clientY - rect.height - 10;
+        }
+        
+        tooltip.style.left = `${left}px`;
+        tooltip.style.top = `${top}px`;
     }
-    
-    tooltip.style.display = "block";
 }
 
 // Hide tooltip
