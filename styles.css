@@ -465,31 +465,40 @@ textarea {
 
     .map-container {
         width: 100%;
-        max-width: none;
+        max-width: 100%;
         margin: 0 auto;
     }
 
     .map-wrapper {
         transform: none !important;
+        width: 100%;
+        height: 100%;
     }
 
     .map-image {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        max-width: 100%;
     }
 }
 
-/* Medium screens - prevent layout jump */
-@media screen and (min-width: 769px) and (max-width: 1026px) {
+/* Large Desktop Styles */
+@media screen and (min-width: 1027px) {
     .container {
         width: calc(100% - 40px);
-        padding: 0 20px;
+        max-width: 1200px;
+        margin: 0 auto;
     }
 
     .map-container {
         width: 100%;
         height: 450px;
+    }
+
+    .map-wrapper {
+        width: 100%;
+        height: 100%;
     }
 
     .map-image {
