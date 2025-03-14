@@ -112,29 +112,32 @@ function renderMileMarkers() {
     if (!mileContainer) return;
     mileContainer.innerHTML = "";
 
+    const isMobile = window.innerWidth <= 768;
+    const scale = isMobile ? 1.5 : 1; // Adjust scale factor for mobile
+
     miles.forEach(mile => {
         const marker = document.createElement("div");
         marker.classList.add("mile-marker", mile.sponsored ? "sponsored" : "needed");
         marker.textContent = mile.number;
         marker.dataset.mile = mile.number;
-        marker.style.left = mile.coords.left;
-        marker.style.top = mile.coords.top;
 
-        // Desktop events
+        // Apply position with scale adjustment for mobile
+        const left = parseFloat(mile.coords.left) * scale;
+        const top = parseFloat(mile.coords.top) * scale;
+        marker.style.left = `${left}%`;
+        marker.style.top = `${top}%`;
+
+        // Event listeners
         marker.addEventListener("mouseover", (event) => showTooltip(event, mile));
         marker.addEventListener("mouseout", () => hideTooltip());
-
-        // Mobile events
         marker.addEventListener("touchstart", (event) => {
-            event.preventDefault(); // Prevent double-tap zoom
+            event.preventDefault();
             if (!mile.sponsored) {
                 openSponsorModal(mile.number);
             } else {
                 showTooltip(event, mile);
             }
         });
-
-        // Click event for both desktop and mobile
         marker.addEventListener("click", () => {
             if (!mile.sponsored) {
                 openSponsorModal(mile.number);
@@ -144,7 +147,7 @@ function renderMileMarkers() {
         mileContainer.appendChild(marker);
     });
 
-    logDebug(`✅ Rendered ${miles.length} mile markers.`);
+    logDebug(`✅ Rendered ${miles.length} mile markers with ${isMobile ? 'mobile' : 'desktop'} scaling`);
 }
 
 // Show tooltip
@@ -350,69 +353,83 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Initialize mobile map controls
 function initMobileMapControls() {
-    // Only initialize mobile controls if we're on a mobile device
-    if (window.innerWidth > 768) {
-        return; // Exit if we're on desktop
-    }
+    const wrapper = document.querySelector('.map-wrapper');
+    if (!wrapper) return;
 
-    // Wrap the map image in a scrollable container
+    // Wrap the map image if needed
     const mapImage = document.querySelector('.map-image');
     if (!mapImage.parentElement.classList.contains('map-wrapper')) {
-        const wrapper = document.createElement('div');
         wrapper.className = 'map-wrapper';
         mapImage.parentNode.insertBefore(wrapper, mapImage);
         wrapper.appendChild(mapImage);
         
-        // Move mile markers inside wrapper to scale with map
+        // Move mile markers inside wrapper
         const mileMarkersContainer = document.getElementById('mile-markers');
         if (mileMarkersContainer) {
             wrapper.appendChild(mileMarkersContainer);
         }
     }
 
-    // Add touch event listeners for panning
-    const wrapper = document.querySelector('.map-wrapper');
-    if (wrapper) {
-        let lastX = 0;
-        let lastY = 0;
-        let isDragging = false;
-        let currentX = 0;
-        let currentY = 0;
+    let isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let currentX = 0;
+    let currentY = 0;
 
-        wrapper.addEventListener('touchstart', (e) => {
-            isDragging = true;
-            lastX = e.touches[0].pageX;
-            lastY = e.touches[0].pageY;
-            wrapper.style.transition = 'none';
-        }, { passive: true });
+    // Touch event handlers
+    wrapper.addEventListener('touchstart', handleDragStart, { passive: true });
+    wrapper.addEventListener('touchmove', handleDragMove, { passive: true });
+    wrapper.addEventListener('touchend', handleDragEnd);
 
-        wrapper.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
-            
-            const deltaX = e.touches[0].pageX - lastX;
-            const deltaY = e.touches[0].pageY - lastY;
-            
-            currentX += deltaX;
-            currentY += deltaY;
-            
-            // Limit panning to keep map visible
-            const maxX = wrapper.offsetWidth * 0.5;
-            const maxY = wrapper.offsetHeight * 0.5;
-            
-            currentX = Math.max(Math.min(currentX, maxX), -maxX);
-            currentY = Math.max(Math.min(currentY, maxY), -maxY);
-            
-            wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
-            
-            lastX = e.touches[0].pageX;
-            lastY = e.touches[0].pageY;
-        }, { passive: true });
+    // Mouse event handlers
+    wrapper.addEventListener('mousedown', handleDragStart);
+    wrapper.addEventListener('mousemove', handleDragMove);
+    wrapper.addEventListener('mouseup', handleDragEnd);
+    wrapper.addEventListener('mouseleave', handleDragEnd);
 
-        wrapper.addEventListener('touchend', () => {
-            isDragging = false;
-            wrapper.style.transition = 'transform 0.3s ease-out';
-        });
+    function handleDragStart(e) {
+        isDragging = true;
+        wrapper.style.transition = 'none';
+        
+        // Get start position for either mouse or touch
+        const pos = e.type.includes('mouse') ? e : e.touches[0];
+        startX = pos.pageX - currentX;
+        startY = pos.pageY - currentY;
     }
+
+    function handleDragMove(e) {
+        if (!isDragging) return;
+
+        // Get current position for either mouse or touch
+        const pos = e.type.includes('mouse') ? e : e.touches[0];
+        
+        // Calculate new position
+        const x = pos.pageX - startX;
+        const y = pos.pageY - startY;
+
+        // Calculate bounds based on map size
+        const bounds = wrapper.getBoundingClientRect();
+        const containerBounds = wrapper.parentElement.getBoundingClientRect();
+        
+        // Calculate maximum allowed movement
+        const maxX = (bounds.width - containerBounds.width) / 2;
+        const maxY = (bounds.height - containerBounds.height) / 2;
+
+        // Apply bounds
+        currentX = Math.max(Math.min(x, maxX), -maxX);
+        currentY = Math.max(Math.min(y, maxY), -maxY);
+
+        // Apply transform
+        wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    }
+
+    function handleDragEnd() {
+        isDragging = false;
+        wrapper.style.transition = 'transform 0.3s ease-out';
+    }
+
+    // Prevent default drag behavior on desktop
+    wrapper.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
 // Remove unused navigation functions
