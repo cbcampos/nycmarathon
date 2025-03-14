@@ -625,6 +625,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Load sponsorships and update UI
         await loadSponsorships();
         
+        // Load training stats
+        fetchTrainingStats();
+        
         // Hide loading skeleton after everything is loaded
         document.querySelector('.loading-skeleton').style.display = 'none';
         document.querySelector('.map-container').style.display = 'block';
@@ -732,19 +735,46 @@ function displayTrainingStats(stats) {
         return;
     }
 
-    const lastUpdated = new Date(stats.lastUpdated).toLocaleString();
-
     statsContent.innerHTML = `
-        <p class="miles-count">${stats.totalMiles} miles</p>
-        <p class="runs-count">${stats.activitiesCount} training runs in 2025</p>
-        <p class="last-updated">Last updated: ${lastUpdated}</p>
+        <p class="training-text">Chris has run ${stats.totalMiles} miles in 2025</p>
     `;
 }
 
 // Initialize everything when the page loads
-document.addEventListener('DOMContentLoaded', () => {
-    initMileSelector();
-    initSponsorModal();
-    fetchSponsorship();
-    fetchTrainingStats();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Remove no-js class
+        document.documentElement.classList.remove('no-js');
+        
+        // Initialize countdown first as it doesn't depend on API
+        updateCountdown();
+        
+        // Initialize mobile controls
+        initMobileMapControls();
+        
+        // Load saved form data
+        loadSavedFormData();
+        
+        // Start periodic form data saving
+        setInterval(saveFormData, 5000);
+        
+        // Load sponsorships and update UI
+        await loadSponsorships();
+        
+        // Load training stats
+        fetchTrainingStats();
+        
+        // Hide loading skeleton after everything is loaded
+        document.querySelector('.loading-skeleton').style.display = 'none';
+        document.querySelector('.map-container').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        // Show error message to user
+        const container = document.querySelector('.container');
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = 'There was an error loading the page. Please refresh to try again.';
+        container.insertBefore(errorMessage, container.firstChild);
+    }
 });
