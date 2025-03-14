@@ -351,9 +351,10 @@ document.addEventListener("DOMContentLoaded", () => {
 // Add after your existing constants at the top
 let isDragging = false;
 let startX = 0;
-let scrollLeft = 0;
+let startTransform = 0;
 let currentSection = 0;
-const TOTAL_SECTIONS = 2; // 0, 1, 2 for left, middle, right
+const TOTAL_SECTIONS = 2;
+const SCROLL_SENSITIVITY = 0.5; // Reduce this value to make scrolling less sensitive
 
 // Initialize mobile map controls
 function initMobileMapControls() {
@@ -365,6 +366,12 @@ function initMobileMapControls() {
         mapImage.parentNode.insertBefore(wrapper, mapImage);
         wrapper.appendChild(mapImage);
         
+        // Move mile markers inside wrapper to scale with map
+        const mileMarkersContainer = document.getElementById('mile-markers');
+        if (mileMarkersContainer) {
+            wrapper.appendChild(mileMarkersContainer);
+        }
+        
         // Add navigation buttons
         const nav = document.createElement('div');
         nav.className = 'map-nav';
@@ -372,7 +379,7 @@ function initMobileMapControls() {
             <button class="nav-button" id="prevBtn">←</button>
             <button class="nav-button" id="nextBtn">→</button>
         `;
-        mileContainer.parentElement.appendChild(nav);
+        wrapper.parentElement.appendChild(nav);
         
         // Add event listeners for buttons
         const prevBtn = document.getElementById('prevBtn');
@@ -390,21 +397,27 @@ function initMobileMapControls() {
     
     wrapper.addEventListener('touchstart', (e) => {
         isDragging = true;
-        startX = e.touches[0].pageX - wrapper.offsetLeft;
-        scrollLeft = wrapper.scrollLeft;
-    });
+        startX = e.touches[0].pageX;
+        startTransform = getCurrentTransform();
+        wrapper.style.transition = 'none';
+    }, { passive: true });
 
     wrapper.addEventListener('touchmove', (e) => {
         if (!isDragging) return;
-        e.preventDefault();
-        const x = e.touches[0].pageX - wrapper.offsetLeft;
-        const walk = (x - startX) * 2;
-        const currentTransform = getCurrentTransform();
-        setMapPosition(currentTransform - walk);
-    });
+        
+        const x = e.touches[0].pageX;
+        const walk = (x - startX) * SCROLL_SENSITIVITY;
+        const newTransform = startTransform + (walk / wrapper.offsetWidth * 100);
+        
+        // Limit scrolling bounds
+        const limitedTransform = Math.max(Math.min(newTransform, 0), -66.66);
+        setMapPosition(limitedTransform);
+    }, { passive: true });
 
     wrapper.addEventListener('touchend', () => {
         isDragging = false;
+        const wrapper = document.querySelector('.map-wrapper');
+        wrapper.style.transition = 'transform 0.3s ease-out';
         snapToNearestSection();
     });
 }
@@ -417,7 +430,7 @@ function navigateMap(direction) {
         currentSection++;
     }
     
-    const position = -(currentSection * 33.33); // Each section is roughly 33.33% of the view
+    const position = -(currentSection * 33.33);
     setMapPosition(position);
     updateNavigationButtons();
 }
