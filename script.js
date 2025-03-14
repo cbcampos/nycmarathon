@@ -260,19 +260,17 @@ function trapFocus(e) {
 }
 
 // Close modal
-function closeModal() {
+closeModal.addEventListener("click", () => {
     modal.style.display = "none";
     document.body.style.overflow = "auto";
-    modal.removeEventListener('keydown', trapFocus);
-}
-
-// Event listeners for modal
-document.querySelector('[data-action="close-modal"]').addEventListener('click', closeModal);
-modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
 });
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
+
+// Close modal when clicking outside the form
+window.addEventListener("click", (event) => {
+    if (event.target === modal) {
+        modal.style.display = "none";
+        document.body.style.overflow = "auto";
+    }
 });
 
 // Validate form before enabling submit button
@@ -364,20 +362,31 @@ if (shareButton) {
         };
 
         try {
-            if (navigator.share) {
+            if (navigator.share && !navigator.userAgent.includes('Firefox')) { // Exclude Firefox due to implementation issues
                 await navigator.share(shareData);
             } else {
                 // Fallback for browsers that don't support Web Share API
                 const tempInput = document.createElement('input');
                 tempInput.value = `${shareData.text}\n${shareData.url}`;
+                tempInput.setAttribute('readonly', '');
+                tempInput.style.position = 'absolute';
+                tempInput.style.left = '-9999px';
                 document.body.appendChild(tempInput);
                 tempInput.select();
-                document.execCommand('copy');
+                try {
+                    document.execCommand('copy');
+                    alert('Link copied to clipboard! Share it with your friends.');
+                } catch (err) {
+                    console.error('Failed to copy:', err);
+                    // Fallback for mobile
+                    alert(`Please share this link:\n${shareData.text}\n${shareData.url}`);
+                }
                 document.body.removeChild(tempInput);
-                alert('Link copied to clipboard! Share it with your friends.');
             }
         } catch (err) {
             console.error('Error sharing:', err);
+            // Fallback if sharing fails
+            alert(`Please share this link:\n${shareData.text}\n${shareData.url}`);
         }
     });
 }
@@ -557,20 +566,39 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
 });
 
 // Load sponsorships when page loads
-document.addEventListener("DOMContentLoaded", () => {
-    // Remove no-js class
-    document.documentElement.classList.remove('no-js');
-    
-    // Load saved form data
-    loadSavedFormData();
-    
-    // Save form data periodically
-    setInterval(saveFormData, 5000);
-    
-    // Initialize existing functionality
-    loadSponsorships();
-    initMobileMapControls();
-    updateCountdown();
+document.addEventListener("DOMContentLoaded", async () => {
+    try {
+        // Remove no-js class
+        document.documentElement.classList.remove('no-js');
+        
+        // Initialize countdown first as it doesn't depend on API
+        updateCountdown();
+        
+        // Initialize mobile controls
+        initMobileMapControls();
+        
+        // Load saved form data
+        loadSavedFormData();
+        
+        // Start periodic form data saving
+        setInterval(saveFormData, 5000);
+        
+        // Load sponsorships and update UI
+        await loadSponsorships();
+        
+        // Hide loading skeleton after everything is loaded
+        document.querySelector('.loading-skeleton').style.display = 'none';
+        document.querySelector('.map-container').style.display = 'block';
+        
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        // Show error message to user
+        const container = document.querySelector('.container');
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = 'There was an error loading the page. Please refresh to try again.';
+        container.insertBefore(errorMessage, container.firstChild);
+    }
 });
 
 // Initialize mobile map controls
