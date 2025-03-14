@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbyvfxOEo9uOeLl5osC4IC8BpBzymXkLPZOeerBM5ISb19Byh9vaBd9l3gFByfN9uM-t/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbzomA0zqHvWvQ1T9-0AxhIFsPAwdZ1YZLVjSWrzUx08bKCQFHNvbgXfWR24etoUPVxAnA/exec";
 
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
@@ -715,4 +715,36 @@ function initVideoOverlay() {
 // Initialize video overlay when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initVideoOverlay();
+});
+
+// Function to fetch training stats
+function fetchTrainingStats() {
+    const script = document.createElement('script');
+    script.src = `${googleScriptURL}?type=training&callback=displayTrainingStats`;
+    document.body.appendChild(script);
+}
+
+// Callback function to display training stats
+function displayTrainingStats(stats) {
+    const statsContent = document.querySelector('.stats-content');
+    if (!stats || stats.error) {
+        statsContent.innerHTML = '<div class="error">Unable to load training data</div>';
+        return;
+    }
+
+    const lastUpdated = new Date(stats.lastUpdated).toLocaleString();
+
+    statsContent.innerHTML = `
+        <p class="miles-count">${stats.totalMiles} miles</p>
+        <p class="runs-count">${stats.activitiesCount} training runs in 2025</p>
+        <p class="last-updated">Last updated: ${lastUpdated}</p>
+    `;
+}
+
+// Initialize everything when the page loads
+document.addEventListener('DOMContentLoaded', () => {
+    initMileSelector();
+    initSponsorModal();
+    fetchSponsorship();
+    fetchTrainingStats();
 });
