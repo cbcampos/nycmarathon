@@ -59,27 +59,41 @@ function pixelToPercentage(x, y) {
 async function loadSponsorships() {
     logDebug("🔄 Fetching sponsorship data...");
     try {
-        // Create a unique callback name
-        const callbackName = 'jsonpCallback_' + Math.round(100000 * Math.random());
+        // Create a unique callback name with timestamp and random number
+        const timestamp = new Date().getTime();
+        const random = Math.floor(Math.random() * 1000000);
+        const callbackName = `jsonpCallback_${timestamp}_${random}`;
         
         // Create a script element
         const script = document.createElement('script');
-        script.src = `${googleScriptURL}?callback=${callbackName}`;
+        script.src = `${googleScriptURL}&callback=${callbackName}`;
         
         // Create a promise that will resolve when the callback is called
         const sponsorshipsPromise = new Promise((resolve, reject) => {
+            // Set timeout to reject if taking too long
+            const timeoutId = setTimeout(() => {
+                reject(new Error('Request timed out'));
+                cleanup();
+            }, 10000); // 10 second timeout
+            
+            // Cleanup function
+            const cleanup = () => {
+                clearTimeout(timeoutId);
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                delete window[callbackName];
+            };
+            
+            // Setup callback
             window[callbackName] = (data) => {
                 resolve(data);
-                // Clean up
-                document.body.removeChild(script);
-                delete window[callbackName];
+                cleanup();
             };
             
             script.onerror = () => {
                 reject(new Error('Script loading failed'));
-                // Clean up
-                document.body.removeChild(script);
-                delete window[callbackName];
+                cleanup();
             };
         });
         
@@ -106,6 +120,12 @@ async function loadSponsorships() {
         renderMileMarkers();
     } catch (error) {
         logDebug(`❌ Error loading sponsorships: ${error.message}`);
+        // Show error message to user
+        const container = document.querySelector('.container');
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'error-message';
+        errorMessage.textContent = 'Unable to load sponsorship data. Please refresh the page to try again.';
+        container.insertBefore(errorMessage, container.firstChild);
     }
 }
 
