@@ -804,3 +804,23 @@ a:focus-visible {
         scroll-behavior: auto !important;
     }
 }
+
+/* Initial Loading States */
+.map-container.js-only {
+    display: none; /* Hidden by default until loaded */
+}
+
+.loading-skeleton {
+    display: block; /* Show by default */
+}
+
+/* Error Message */
+.error-message {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 4px;
+    text-align: center;
+}
