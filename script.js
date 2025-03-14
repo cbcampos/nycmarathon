@@ -1,4 +1,5 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbwMSKx0KRo0nNriPKW7t7kA1UlIrzXhLI_Fym_QdFS60Lvu8PhYt4SunICrVzgvUMMU/exec";
+
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -369,16 +370,20 @@ function initMobileMapControls() {
 
     const isMobile = window.innerWidth <= 768;
     
-    // Only add zoom controls for mobile
-    if (isMobile) {
-        const zoomControls = document.createElement('div');
-        zoomControls.className = 'zoom-controls';
-        zoomControls.innerHTML = `
-            <button class="zoom-button" id="zoomIn">+</button>
-            <button class="zoom-button" id="zoomOut">−</button>
-        `;
-        container.appendChild(zoomControls);
+    if (!isMobile) {
+        // On desktop, ensure map is unzoomed
+        wrapper.style.transform = 'none';
+        return;
     }
+
+    // Mobile-only controls
+    const zoomControls = document.createElement('div');
+    zoomControls.className = 'zoom-controls';
+    zoomControls.innerHTML = `
+        <button class="zoom-button" id="zoomIn">+</button>
+        <button class="zoom-button" id="zoomOut">−</button>
+    `;
+    container.appendChild(zoomControls);
 
     let isDragging = false;
     let startX = 0;
@@ -389,20 +394,16 @@ function initMobileMapControls() {
     let initialDistance = 0;
     let isZooming = false;
 
-    // Set initial transform
+    // Prevent page zoom on double tap
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend', (e) => e.preventDefault());
+
     function setTransform() {
-        if (isMobile) {
-            wrapper.style.transform = `scale(${currentScale}) translate(${currentX}px, ${currentY}px)`;
-        } else {
-            // On desktop, only allow transform during drag
-            wrapper.style.transform = isDragging ? `translate(${currentX}px, ${currentY}px)` : 'none';
-        }
+        wrapper.style.transform = `scale(${currentScale}) translate(${currentX}px, ${currentY}px)`;
     }
 
-    // Handle zoom (mobile only)
     function handleZoom(delta, centerX = container.offsetWidth / 2, centerY = container.offsetHeight / 2) {
-        if (!isMobile) return;
-        
         const oldScale = currentScale;
         currentScale = Math.min(Math.max(currentScale + delta, 1), 3);
         
@@ -420,7 +421,6 @@ function initMobileMapControls() {
         }
     }
 
-    // Apply movement bounds
     function applyBounds() {
         const rect = wrapper.getBoundingClientRect();
         const containerRect = container.getBoundingClientRect();
@@ -432,10 +432,7 @@ function initMobileMapControls() {
         currentY = Math.max(Math.min(currentY, maxY), -maxY);
     }
 
-    // Touch event handlers
     function handleTouchStart(e) {
-        if (!isMobile) return;
-        
         if (e.touches.length === 2) {
             isZooming = true;
             const touch1 = e.touches[0];
@@ -450,12 +447,9 @@ function initMobileMapControls() {
             startX = touch.pageX - currentX;
             startY = touch.pageY - currentY;
         }
-        wrapper.style.transition = 'none';
     }
 
     function handleTouchMove(e) {
-        if (!isMobile) return;
-        
         if (isZooming && e.touches.length === 2) {
             const touch1 = e.touches[0];
             const touch2 = e.touches[1];
@@ -479,68 +473,16 @@ function initMobileMapControls() {
     function handleTouchEnd() {
         isDragging = false;
         isZooming = false;
-        wrapper.style.transition = 'transform 0.3s ease-out';
-        if (!isMobile) {
-            wrapper.style.transform = 'none';
-        }
     }
 
-    // Mouse event handlers
-    function handleMouseDown(e) {
-        if (e.button !== 0) return;
-        isDragging = true;
-        startX = e.pageX - currentX;
-        startY = e.pageY - currentY;
-        wrapper.style.transition = 'none';
-        wrapper.style.cursor = 'grabbing';
-        e.preventDefault();
-    }
-
-    function handleMouseMove(e) {
-        if (!isDragging) return;
-        currentX = e.pageX - startX;
-        currentY = e.pageY - startY;
-        applyBounds();
-        setTransform();
-    }
-
-    function handleMouseUp() {
-        isDragging = false;
-        wrapper.style.transition = 'transform 0.3s ease-out';
-        wrapper.style.cursor = 'grab';
-        if (!isMobile) {
-            wrapper.style.transform = 'none';
-        }
-    }
-
-    if (isMobile) {
-        // Prevent page zoom on double tap for mobile
-        document.addEventListener('gesturestart', (e) => e.preventDefault());
-        document.addEventListener('gesturechange', (e) => e.preventDefault());
-        document.addEventListener('gestureend', (e) => e.preventDefault());
-
-        // Zoom button handlers
-        document.getElementById('zoomIn')?.addEventListener('click', () => handleZoom(0.5));
-        document.getElementById('zoomOut')?.addEventListener('click', () => handleZoom(-0.5));
-
-        // Mouse wheel zoom
-        container.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            const delta = -e.deltaY * 0.01;
-            handleZoom(delta, e.pageX, e.pageY);
-        });
-    }
+    // Zoom button handlers
+    document.getElementById('zoomIn').addEventListener('click', () => handleZoom(0.5));
+    document.getElementById('zoomOut').addEventListener('click', () => handleZoom(-0.5));
 
     // Touch events
     wrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
     wrapper.addEventListener('touchmove', handleTouchMove, { passive: true });
     wrapper.addEventListener('touchend', handleTouchEnd);
-
-    // Mouse events
-    wrapper.addEventListener('mousedown', handleMouseDown);
-    wrapper.addEventListener('mousemove', handleMouseMove);
-    wrapper.addEventListener('mouseup', handleMouseUp);
-    wrapper.addEventListener('mouseleave', handleMouseUp);
 
     // Prevent default drag behavior
     wrapper.addEventListener('dragstart', (e) => e.preventDefault());
