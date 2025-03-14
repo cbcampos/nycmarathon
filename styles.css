@@ -126,7 +126,7 @@ header {
     transform-origin: center;
     margin-left: -15px;
     margin-top: -15px;
-    transform: translateX(1.7%) translateY(4.4%);
+    transform: translateX(2.2%) translateY(5.4%);
 }
 
 .mile-marker.sponsored {
@@ -134,7 +134,7 @@ header {
 }
 
 .mile-marker:hover {
-    transform: translateX(1.7%) translateY(4.4%) scale(1.2);
+    transform: translateX(2.2%) translateY(5.4%) scale(1.2);
     z-index: 10;
 }
 
@@ -497,14 +497,7 @@ textarea {
 
     .map-container {
         width: 100%;
-        max-width: 990px;
-        aspect-ratio: 4001/1817;
-        margin: 0 auto;
-    }
-
-    .progress-section {
-        max-width: 990px;
-        margin: 0 auto;
+        height: 450px;
     }
 
     .map-wrapper {
