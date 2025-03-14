@@ -382,140 +382,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Initialize mobile map controls
 function initMobileMapControls() {
-    const wrapper = document.querySelector('.map-wrapper');
     const container = document.querySelector('.map-container');
     const mapImage = document.querySelector('.map-image');
-    if (!wrapper || !container) return;
+    if (!container || !mapImage) return;
 
     // Prevent context menu and image saving
     container.addEventListener('contextmenu', (e) => e.preventDefault());
-    if (mapImage) {
-        mapImage.addEventListener('contextmenu', (e) => e.preventDefault());
-        mapImage.addEventListener('touchstart', (e) => {
-            if (e.touches.length === 1) {
-                e.preventDefault(); // Prevent long-press menu on single touch
-            }
-        }, { passive: false });
-    }
+    mapImage.addEventListener('contextmenu', (e) => e.preventDefault());
+    mapImage.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            e.preventDefault(); // Prevent long-press menu on single touch
+        }
+    }, { passive: false });
 
-    const isMobile = window.innerWidth <= 768;
-    
-    if (!isMobile) {
-        // On desktop, ensure map is unzoomed
-        wrapper.style.transform = 'none';
-        return;
-    }
-
-    // Mobile-only controls
-    const zoomControls = document.createElement('div');
-    zoomControls.className = 'zoom-controls';
-    zoomControls.innerHTML = `
-        <button class="zoom-button" id="zoomIn">+</button>
-        <button class="zoom-button" id="zoomOut">−</button>
-    `;
-    container.appendChild(zoomControls);
-
-    let isDragging = false;
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let currentY = 0;
-    let currentScale = 1;
-    let initialDistance = 0;
-    let isZooming = false;
-
-    // Prevent page zoom on double tap
+    // Prevent default touch behaviors
     document.addEventListener('gesturestart', (e) => e.preventDefault());
     document.addEventListener('gesturechange', (e) => e.preventDefault());
     document.addEventListener('gestureend', (e) => e.preventDefault());
-
-    function setTransform() {
-        wrapper.style.transform = `scale(${currentScale}) translate(${currentX}px, ${currentY}px)`;
-    }
-
-    function handleZoom(delta, centerX = container.offsetWidth / 2, centerY = container.offsetHeight / 2) {
-        const oldScale = currentScale;
-        currentScale = Math.min(Math.max(currentScale + delta, 1), 3);
-        
-        if (oldScale !== currentScale) {
-            const scaleRatio = currentScale / oldScale;
-            const rect = wrapper.getBoundingClientRect();
-            const x = centerX - rect.left;
-            const y = centerY - rect.top;
-            
-            currentX = currentX * scaleRatio - (x * (scaleRatio - 1));
-            currentY = currentY * scaleRatio - (y * (scaleRatio - 1));
-            
-            applyBounds();
-            setTransform();
-        }
-    }
-
-    function applyBounds() {
-        const rect = wrapper.getBoundingClientRect();
-        const containerRect = container.getBoundingClientRect();
-        
-        const maxX = (rect.width - containerRect.width) / 2;
-        const maxY = (rect.height - containerRect.height) / 2;
-        
-        currentX = Math.max(Math.min(currentX, maxX), -maxX);
-        currentY = Math.max(Math.min(currentY, maxY), -maxY);
-    }
-
-    function handleTouchStart(e) {
-        if (e.touches.length === 2) {
-            isZooming = true;
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            initialDistance = Math.hypot(
-                touch2.pageX - touch1.pageX,
-                touch2.pageY - touch1.pageY
-            );
-        } else if (e.touches.length === 1) {
-            isDragging = true;
-            const touch = e.touches[0];
-            startX = touch.pageX - currentX;
-            startY = touch.pageY - currentY;
-        }
-    }
-
-    function handleTouchMove(e) {
-        if (isZooming && e.touches.length === 2) {
-            const touch1 = e.touches[0];
-            const touch2 = e.touches[1];
-            const currentDistance = Math.hypot(
-                touch2.pageX - touch1.pageX,
-                touch2.pageY - touch1.pageY
-            );
-            
-            const delta = (currentDistance - initialDistance) * 0.01;
-            handleZoom(delta, (touch1.pageX + touch2.pageX) / 2, (touch1.pageY + touch2.pageY) / 2);
-            initialDistance = currentDistance;
-        } else if (isDragging && e.touches.length === 1) {
-            const touch = e.touches[0];
-            currentX = touch.pageX - startX;
-            currentY = touch.pageY - startY;
-            applyBounds();
-            setTransform();
-        }
-    }
-
-    function handleTouchEnd() {
-        isDragging = false;
-        isZooming = false;
-    }
-
-    // Zoom button handlers
-    document.getElementById('zoomIn').addEventListener('click', () => handleZoom(0.5));
-    document.getElementById('zoomOut').addEventListener('click', () => handleZoom(-0.5));
-
-    // Touch events
-    wrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
-    wrapper.addEventListener('touchmove', handleTouchMove, { passive: true });
-    wrapper.addEventListener('touchend', handleTouchEnd);
-
-    // Prevent default drag behavior
-    wrapper.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
 // Remove unused navigation functions
