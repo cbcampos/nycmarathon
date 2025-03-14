@@ -39,9 +39,19 @@ const miles = Array.from({ length: 26 }, (_, i) => ({
 
 // Convert pixel positions to percentage
 function pixelToPercentage(x, y) {
+    // Original map dimensions from the coordinate system
+    const MAP_WIDTH = 4001;
+    const MAP_HEIGHT = 1817;
+    const MAP_OFFSET_X = 64;
+    const MAP_OFFSET_Y = 76;
+
+    // Calculate percentages from the original map dimensions
+    const xPercent = ((x - MAP_OFFSET_X) / MAP_WIDTH) * 100;
+    const yPercent = ((y - MAP_OFFSET_Y) / MAP_HEIGHT) * 100;
+
     return {
-        left: `${((x - 64) / 4001) * 100}%`,
-        top: `${((y - 76) / 1817) * 100}%`
+        left: `${xPercent}%`,
+        top: `${yPercent}%`
     };
 }
 
@@ -112,9 +122,6 @@ function updateProgressBar(totalRaised) {
 function renderMileMarkers() {
     if (!mileContainer) return;
     mileContainer.innerHTML = "";
-
-    const isMobile = window.innerWidth <= 768;
-    const isSmallMobile = window.innerWidth <= 480;
     
     miles.forEach(mile => {
         const marker = document.createElement("div");
@@ -122,6 +129,7 @@ function renderMileMarkers() {
         marker.textContent = mile.number;
         marker.dataset.mile = mile.number;
 
+        // Position marker using percentage coordinates
         marker.style.left = mile.coords.left;
         marker.style.top = mile.coords.top;
 
