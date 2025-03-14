@@ -28,7 +28,7 @@ header {
     color: white;
     padding: 20px 0;
     flex-shrink: 0;
-    height: 80px;
+    height: 100px;
     display: flex;
     align-items: center;
 }
@@ -42,6 +42,11 @@ header {
     font-size: 32px;
     margin: 0;
     line-height: 1.2;
+}
+
+.hero span {
+    color: #ff3b3b;
+    font-weight: bold;
 }
 
 .hero p {
@@ -946,4 +951,30 @@ a:focus-visible {
 .loading {
     color: #7f8c8d;
     font-style: italic;
+}
+
+/* Training Stats */
+.training-stats {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.training-text {
+    color: white;
+    font-size: 14px;
+    margin: 10px 0 0;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.loading {
+    color: rgba(255, 255, 255, 0.7);
+    font-style: italic;
+    font-size: 14px;
+}
+
+@media screen and (max-width: 768px) {
+    .training-text {
+        font-size: 13px;
+    }
 }
