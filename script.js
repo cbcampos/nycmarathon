@@ -378,6 +378,7 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
 document.addEventListener("DOMContentLoaded", () => {
     loadSponsorships();
     initMobileMapControls();
+    updateCountdown();
 });
 
 // Initialize mobile map controls
@@ -410,4 +411,13 @@ function getCurrentTransform() {
         x: matrix.m41,
         y: matrix.m42
     };
+}
+
+// Update countdown
+function updateCountdown() {
+    const marathonDate = new Date('2025-11-02T00:00:00');
+    const now = new Date();
+    const difference = marathonDate - now;
+    const days = Math.ceil(difference / (1000 * 60 * 60 * 24));
+    document.getElementById('daysLeft').textContent = days;
 }
