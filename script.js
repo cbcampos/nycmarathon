@@ -376,7 +376,19 @@ document.addEventListener("DOMContentLoaded", () => {
 function initMobileMapControls() {
     const wrapper = document.querySelector('.map-wrapper');
     const container = document.querySelector('.map-container');
+    const mapImage = document.querySelector('.map-image');
     if (!wrapper || !container) return;
+
+    // Prevent context menu and image saving
+    container.addEventListener('contextmenu', (e) => e.preventDefault());
+    if (mapImage) {
+        mapImage.addEventListener('contextmenu', (e) => e.preventDefault());
+        mapImage.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1) {
+                e.preventDefault(); // Prevent long-press menu on single touch
+            }
+        }, { passive: false });
+    }
 
     const isMobile = window.innerWidth <= 768;
     
