@@ -1,4 +1,5 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbwMSKx0KRo0nNriPKW7t7kA1UlIrzXhLI_Fym_QdFS60Lvu8PhYt4SunICrVzgvUMMU/exec";
+
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -684,16 +685,18 @@ function updateCountdown() {
 function initVideoOverlay() {
     const overlay = document.getElementById('videoOverlay');
     const closeButton = document.querySelector('.close-video');
+    const iframe = overlay.querySelector('iframe');
+    const videoSrc = iframe.src;
     
     if (closeButton) {
         closeButton.addEventListener('click', () => {
             overlay.style.display = 'none';
-            // Stop video playback when closed
-            const iframe = overlay.querySelector('iframe');
-            if (iframe) {
-                const src = iframe.src;
-                iframe.src = src;
-            }
+            // Completely stop video playback by removing src
+            iframe.src = '';
+            // Reset src after a brief delay to prepare for next viewing
+            setTimeout(() => {
+                iframe.src = videoSrc;
+            }, 100);
         });
     }
 
