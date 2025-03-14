@@ -12,12 +12,14 @@ body {
 
 .container {
     max-width: 1200px;
+    width: 100%;
     margin: 0 auto;
     padding: 0 20px;
     display: flex;
     flex-direction: column;
     flex: 1;
-    gap: 20px; /* Add consistent spacing between elements */
+    gap: 20px;
+    box-sizing: border-box;
 }
 
 /* Header */
@@ -103,12 +105,23 @@ header {
 /* Mile Markers */
 .mile-marker {
     position: absolute;
-    width: 24px;
-    height: 24px;
-    transform-origin: center;
-    pointer-events: auto;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #0a1744;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
     cursor: pointer;
+    transform-origin: center;
+    transition: transform 0.2s ease;
     z-index: 1;
+}
+
+.mile-marker.sponsored {
+    background-color: #ff3b3b;
 }
 
 .mile-marker:hover {
@@ -304,7 +317,6 @@ textarea {
     color: white;
     padding: 20px;
     border-radius: 10px;
-    margin: 10px 0;
     width: 100%;
     box-sizing: border-box;
 }
@@ -372,9 +384,7 @@ textarea {
     }
 
     .container {
-        height: 100%;
         padding: 10px;
-        gap: 10px;
     }
 
     header {
@@ -398,8 +408,9 @@ textarea {
     }
 
     .mile-marker {
-        width: 32px;
-        height: 32px;
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
     }
 
     .progress-section {
@@ -440,8 +451,8 @@ textarea {
     }
 
     .mile-marker {
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         font-size: 10px;
     }
 }
