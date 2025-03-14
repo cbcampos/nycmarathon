@@ -625,8 +625,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Load sponsorships and update UI
         await loadSponsorships();
         
-        // Load training stats
-        fetchTrainingStats();
+        // Load training stats with new initialization function
+        await initializeTrainingStats();
         
         // Hide loading skeleton after everything is loaded
         document.querySelector('.loading-skeleton').style.display = 'none';
@@ -634,6 +634,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         
     } catch (error) {
         console.error('Error during initialization:', error);
+        logDebug(`❌ Page initialization error: ${error.message}`);
         // Show error message to user
         const container = document.querySelector('.container');
         const errorMessage = document.createElement('div');
@@ -722,23 +723,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Function to fetch training stats
 function fetchTrainingStats() {
+    logDebug("🏃 Starting to fetch training stats from Strava...");
+    
     const script = document.createElement('script');
     const callbackName = 'trainingCallback_' + Math.round(100000 * Math.random());
     
     // Create a promise that will resolve when the callback is called
     const statsPromise = new Promise((resolve, reject) => {
+        logDebug(`🔄 Setting up callback: ${callbackName}`);
+        
         window[callbackName] = (response) => {
+            logDebug("📥 Received training data response:", response);
             resolve(response);
             // Clean up
             if (script.parentNode) {
                 script.parentNode.removeChild(script);
+                logDebug("🧹 Cleaned up script tag");
             }
             delete window[callbackName];
+            logDebug("🧹 Cleaned up callback function");
         };
         
         // Handle script load error
         script.onerror = () => {
-            reject(new Error('Failed to load training data'));
+            const error = new Error('Failed to load training data');
+            logDebug("❌ Script loading failed:", error);
+            reject(error);
             if (script.parentNode) {
                 script.parentNode.removeChild(script);
             }
@@ -747,7 +757,9 @@ function fetchTrainingStats() {
 
         // Set timeout
         setTimeout(() => {
-            reject(new Error('Training data request timed out'));
+            const error = new Error('Training data request timed out');
+            logDebug("⏰ Request timed out:", error);
+            reject(error);
             if (script.parentNode) {
                 script.parentNode.removeChild(script);
             }
@@ -755,8 +767,11 @@ function fetchTrainingStats() {
         }, 5000);
     });
 
-    script.src = `${googleScriptURL}?type=training&callback=${callbackName}`;
+    const url = `${googleScriptURL}?type=training&callback=${callbackName}`;
+    logDebug(`🔗 Loading training data from URL: ${url}`);
+    script.src = url;
     document.body.appendChild(script);
+    logDebug("📤 Added script tag to document");
     
     return statsPromise;
 }
@@ -764,63 +779,52 @@ function fetchTrainingStats() {
 // Callback function to display training stats
 async function displayTrainingStats(stats) {
     const statsContent = document.querySelector('.stats-content');
-    if (!statsContent) return;
+    if (!statsContent) {
+        logDebug("❌ Stats content container not found");
+        return;
+    }
 
     try {
+        logDebug("📊 Processing training stats:", stats);
+        
         if (!stats || stats.error) {
-            throw new Error(stats?.error || 'Unable to load training data');
+            const error = stats?.error || 'Unable to load training data';
+            logDebug("❌ Error in training stats:", error);
+            throw new Error(error);
         }
 
         if (!stats.totalMiles && stats.totalMiles !== 0) {
+            logDebug("❌ No miles data found in response");
             throw new Error('No training data available');
         }
 
+        logDebug(`✅ Successfully loaded training data: ${stats.totalMiles} miles`);
         statsContent.innerHTML = `
-            <p class="training-text">Chris has run ${stats.totalMiles} miles in 2025</p>
+            <p class="training-text">Chris has run <span class="miles">${stats.totalMiles}</span> miles in 2025</p>
         `;
     } catch (error) {
         console.error('Error displaying training stats:', error);
+        logDebug(`❌ Error displaying training stats: ${error.message}`);
         statsContent.innerHTML = `
-            <div class="loading">Unable to load training data. Please try again later.</div>
+            <p class="training-text">Unable to load training data</p>
         `;
     }
 }
 
-// Initialize everything when the page loads
-document.addEventListener('DOMContentLoaded', async () => {
+// Update the initialization to better handle training stats loading
+async function initializeTrainingStats() {
+    logDebug("🎬 Starting training stats initialization");
     try {
-        // Remove no-js class
-        document.documentElement.classList.remove('no-js');
-        
-        // Initialize countdown first as it doesn't depend on API
-        updateCountdown();
-        
-        // Initialize mobile controls
-        initMobileMapControls();
-        
-        // Load saved form data
-        loadSavedFormData();
-        
-        // Start periodic form data saving
-        setInterval(saveFormData, 5000);
-        
-        // Load sponsorships and update UI
-        await loadSponsorships();
-        
-        // Load training stats
-        fetchTrainingStats();
-        
-        // Hide loading skeleton after everything is loaded
-        document.querySelector('.loading-skeleton').style.display = 'none';
-        document.querySelector('.map-container').style.display = 'block';
-        
+        const stats = await fetchTrainingStats();
+        await displayTrainingStats(stats);
+        logDebug("✅ Training stats initialization complete");
     } catch (error) {
-        console.error('Error during initialization:', error);
-        // Show error message to user
-        const container = document.querySelector('.container');
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.textContent = 'There was an error loading the page. Please refresh to try again.';
-        container.insertBefore(errorMessage, container.firstChild);
+        logDebug(`❌ Training stats initialization failed: ${error.message}`);
+        const statsContent = document.querySelector('.stats-content');
+        if (statsContent) {
+            statsContent.innerHTML = `
+                <p class="training-text">Unable to load training data</p>
+            `;
+        }
     }
-});
+}
