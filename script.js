@@ -364,91 +364,160 @@ document.addEventListener("DOMContentLoaded", () => {
 // Initialize mobile map controls
 function initMobileMapControls() {
     const wrapper = document.querySelector('.map-wrapper');
-    if (!wrapper) return;
+    const container = document.querySelector('.map-container');
+    if (!wrapper || !container) return;
+
+    // Add zoom controls
+    const zoomControls = document.createElement('div');
+    zoomControls.className = 'zoom-controls';
+    zoomControls.innerHTML = `
+        <button class="zoom-button" id="zoomIn">+</button>
+        <button class="zoom-button" id="zoomOut">−</button>
+    `;
+    container.appendChild(zoomControls);
 
     let isDragging = false;
     let startX = 0;
     let startY = 0;
     let currentX = 0;
     let currentY = 0;
-    let scale = 1;
+    let currentScale = 1;
+    let initialDistance = 0;
+    let isZooming = false;
 
-    // Set initial scale based on screen width
-    function updateScale() {
-        const containerWidth = wrapper.parentElement.offsetWidth;
-        const mapWidth = wrapper.offsetWidth;
-        
-        if (window.innerWidth <= 480) {
-            scale = 2;
-        } else if (window.innerWidth <= 768) {
-            scale = 1.75;
-        } else if (window.innerWidth <= 1024) {
-            scale = 1.5;
-        } else {
-            scale = 1;
-        }
-        
-        wrapper.style.transform = `scale(${scale}) translate(${currentX}px, ${currentY}px)`;
+    // Prevent page zoom on double tap
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend', (e) => e.preventDefault());
+
+    // Set initial transform
+    function setTransform() {
+        wrapper.style.transform = `scale(${currentScale}) translate(${currentX}px, ${currentY}px)`;
     }
 
-    // Update scale on window resize
-    window.addEventListener('resize', updateScale);
-    updateScale();
+    // Handle zoom
+    function handleZoom(delta, centerX = container.offsetWidth / 2, centerY = container.offsetHeight / 2) {
+        const oldScale = currentScale;
+        currentScale = Math.min(Math.max(currentScale + delta, 1), 3);
+        
+        if (oldScale !== currentScale) {
+            // Adjust position to zoom toward center point
+            const scaleRatio = currentScale / oldScale;
+            const rect = wrapper.getBoundingClientRect();
+            const x = centerX - rect.left;
+            const y = centerY - rect.top;
+            
+            currentX = currentX * scaleRatio - (x * (scaleRatio - 1));
+            currentY = currentY * scaleRatio - (y * (scaleRatio - 1));
+            
+            // Apply bounds
+            applyBounds();
+            setTransform();
+        }
+    }
 
-    // Event handlers
-    function handleDragStart(e) {
-        if (e.type.includes('mouse') && e.button !== 0) return; // Only left mouse button
-        isDragging = true;
+    // Apply movement bounds
+    function applyBounds() {
+        const rect = wrapper.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        const maxX = (rect.width - containerRect.width) / 2;
+        const maxY = (rect.height - containerRect.height) / 2;
+        
+        currentX = Math.max(Math.min(currentX, maxX), -maxX);
+        currentY = Math.max(Math.min(currentY, maxY), -maxY);
+    }
+
+    // Touch event handlers
+    function handleTouchStart(e) {
+        if (e.touches.length === 2) {
+            isZooming = true;
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            initialDistance = Math.hypot(
+                touch2.pageX - touch1.pageX,
+                touch2.pageY - touch1.pageY
+            );
+        } else if (e.touches.length === 1) {
+            isDragging = true;
+            const touch = e.touches[0];
+            startX = touch.pageX - currentX;
+            startY = touch.pageY - currentY;
+        }
         wrapper.style.transition = 'none';
-        
-        const pos = e.type.includes('mouse') ? e : e.touches[0];
-        startX = pos.pageX - currentX;
-        startY = pos.pageY - currentY;
-        
+    }
+
+    function handleTouchMove(e) {
+        if (isZooming && e.touches.length === 2) {
+            const touch1 = e.touches[0];
+            const touch2 = e.touches[1];
+            const currentDistance = Math.hypot(
+                touch2.pageX - touch1.pageX,
+                touch2.pageY - touch1.pageY
+            );
+            
+            const delta = (currentDistance - initialDistance) * 0.01;
+            handleZoom(delta, (touch1.pageX + touch2.pageX) / 2, (touch1.pageY + touch2.pageY) / 2);
+            initialDistance = currentDistance;
+        } else if (isDragging && e.touches.length === 1) {
+            const touch = e.touches[0];
+            currentX = touch.pageX - startX;
+            currentY = touch.pageY - startY;
+            applyBounds();
+            setTransform();
+        }
+    }
+
+    function handleTouchEnd() {
+        isDragging = false;
+        isZooming = false;
+        wrapper.style.transition = 'transform 0.3s ease-out';
+    }
+
+    // Mouse event handlers
+    function handleMouseDown(e) {
+        if (e.button !== 0) return;
+        isDragging = true;
+        startX = e.pageX - currentX;
+        startY = e.pageY - currentY;
+        wrapper.style.transition = 'none';
         e.preventDefault();
     }
 
-    function handleDragMove(e) {
+    function handleMouseMove(e) {
         if (!isDragging) return;
-        
-        const pos = e.type.includes('mouse') ? e : e.touches[0];
-        
-        // Calculate new position
-        const x = (pos.pageX - startX);
-        const y = (pos.pageY - startY);
-
-        // Calculate bounds based on scaled dimensions
-        const containerBounds = wrapper.parentElement.getBoundingClientRect();
-        const scaledWidth = wrapper.offsetWidth * scale;
-        const scaledHeight = wrapper.offsetHeight * scale;
-        
-        // Calculate maximum allowed movement
-        const maxX = (scaledWidth - containerBounds.width) / (2 * scale);
-        const maxY = (scaledHeight - containerBounds.height) / (2 * scale);
-
-        // Apply bounds
-        currentX = Math.max(Math.min(x, maxX), -maxX);
-        currentY = Math.max(Math.min(y, maxY), -maxY);
-
-        // Apply transform with current scale
-        wrapper.style.transform = `scale(${scale}) translate(${currentX}px, ${currentY}px)`;
+        currentX = e.pageX - startX;
+        currentY = e.pageY - startY;
+        applyBounds();
+        setTransform();
     }
 
-    function handleDragEnd() {
+    function handleMouseUp() {
         isDragging = false;
         wrapper.style.transition = 'transform 0.3s ease-out';
     }
 
+    // Zoom button handlers
+    document.getElementById('zoomIn').addEventListener('click', () => handleZoom(0.5));
+    document.getElementById('zoomOut').addEventListener('click', () => handleZoom(-0.5));
+
+    // Mouse wheel zoom
+    container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const delta = -e.deltaY * 0.01;
+        handleZoom(delta, e.pageX, e.pageY);
+    });
+
     // Touch events
-    wrapper.addEventListener('touchstart', handleDragStart);
-    wrapper.addEventListener('touchmove', handleDragMove);
-    wrapper.addEventListener('touchend', handleDragEnd);
+    wrapper.addEventListener('touchstart', handleTouchStart, { passive: true });
+    wrapper.addEventListener('touchmove', handleTouchMove, { passive: true });
+    wrapper.addEventListener('touchend', handleTouchEnd);
 
     // Mouse events
-    wrapper.addEventListener('mousedown', handleDragStart);
-    wrapper.addEventListener('mousemove', handleDragMove);
-    wrapper.addEventListener('mouseup', handleDragEnd);
-    wrapper.addEventListener('mouseleave', handleDragEnd);
+    wrapper.addEventListener('mousedown', handleMouseDown);
+    wrapper.addEventListener('mousemove', handleMouseMove);
+    wrapper.addEventListener('mouseup', handleMouseUp);
+    wrapper.addEventListener('mouseleave', handleMouseUp);
 
     // Prevent default drag behavior
     wrapper.addEventListener('dragstart', (e) => e.preventDefault());
