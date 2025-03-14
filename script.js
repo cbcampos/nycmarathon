@@ -228,21 +228,51 @@ function openSponsorModal(mile) {
     document.getElementById("mileNumber").textContent = mile;
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
+    
+    // Focus management
+    const closeButton = modal.querySelector('.close');
+    closeButton.focus();
+    
+    // Trap focus in modal
+    modal.addEventListener('keydown', trapFocus);
+    
     validateForm();
 }
 
+function trapFocus(e) {
+    if (e.key !== 'Tab') return;
+    
+    const focusableElements = modal.querySelectorAll('button, input, textarea, [tabindex]:not([tabindex="-1"])');
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+    
+    if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+            lastFocusable.focus();
+            e.preventDefault();
+        }
+    } else {
+        if (document.activeElement === lastFocusable) {
+            firstFocusable.focus();
+            e.preventDefault();
+        }
+    }
+}
+
 // Close modal
-closeModal.addEventListener("click", () => {
+function closeModal() {
     modal.style.display = "none";
     document.body.style.overflow = "auto";
-});
+    modal.removeEventListener('keydown', trapFocus);
+}
 
-// Close modal when clicking outside the form
-window.addEventListener("click", (event) => {
-    if (event.target === modal) {
-        modal.style.display = "none";
-        document.body.style.overflow = "auto";
-    }
+// Event listeners for modal
+document.querySelector('[data-action="close-modal"]').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
 });
 
 // Validate form before enabling submit button
@@ -258,16 +288,165 @@ document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[r
     field.addEventListener("input", validateForm);
 });
 
-// Handle form submission
+// Security: Sanitize input
+function sanitizeInput(input) {
+    const div = document.createElement('div');
+    div.textContent = input;
+    return div.innerHTML;
+}
+
+// Form validation messages
+const validationMessages = {
+    firstName: 'Please enter your first name',
+    lastName: 'Please enter your last name',
+    email: 'Please enter a valid email address',
+    phone: 'Please enter a valid 10-digit phone number',
+    message: 'Please enter a message (max 500 characters)',
+    amount: 'Amount must be at least $100'
+};
+
+// Real-time form validation
+function validateField(field) {
+    const errorDiv = field.nextElementSibling;
+    let isValid = true;
+    let message = '';
+
+    // Sanitize input
+    const value = sanitizeInput(field.value.trim());
+
+    switch(field.id) {
+        case 'email':
+            isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            message = isValid ? '' : validationMessages.email;
+            break;
+        case 'phone':
+            isValid = /^\d{10}$/.test(value.replace(/\D/g, ''));
+            message = isValid ? '' : validationMessages.phone;
+            break;
+        case 'message':
+            isValid = value.length > 0 && value.length <= 500;
+            message = isValid ? '' : validationMessages.message;
+            break;
+        case 'amount':
+            isValid = parseInt(value) >= 100;
+            message = isValid ? '' : validationMessages.amount;
+            break;
+        default:
+            isValid = value.length > 0;
+            message = isValid ? '' : validationMessages[field.id];
+    }
+
+    field.setAttribute('aria-invalid', !isValid);
+    errorDiv.textContent = message;
+    return isValid;
+}
+
+// Enhance form fields
+document.querySelectorAll('#sponsorForm input, #sponsorForm textarea').forEach(field => {
+    field.addEventListener('input', () => {
+        validateField(field);
+        validateForm();
+    });
+
+    field.addEventListener('blur', () => {
+        validateField(field);
+    });
+});
+
+// Share functionality
+const shareButton = document.querySelector('.share-button');
+if (shareButton) {
+    shareButton.addEventListener('click', async () => {
+        const shareData = {
+            title: 'Support Chris\'s NYC Marathon Fundraiser',
+            text: 'I just sponsored inclusion by supporting Chris\'s NYC Marathon fundraiser for KultureCity. You can support him too!',
+            url: window.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback for browsers that don't support Web Share API
+                const tempInput = document.createElement('input');
+                tempInput.value = `${shareData.text}\n${shareData.url}`;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+                alert('Link copied to clipboard! Share it with your friends.');
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    });
+}
+
+// Progressive enhancement: Check for required APIs
+const hasRequiredFeatures = {
+    localStorage: !!window.localStorage,
+    fetch: !!window.fetch,
+    promise: !!window.Promise
+};
+
+// Save form data to localStorage
+function saveFormData() {
+    if (!hasRequiredFeatures.localStorage) return;
+    
+    const formData = {};
+    document.querySelectorAll('#sponsorForm input, #sponsorForm textarea').forEach(field => {
+        formData[field.id] = field.value;
+    });
+    localStorage.setItem('sponsorFormData', JSON.stringify(formData));
+}
+
+// Load saved form data
+function loadSavedFormData() {
+    if (!hasRequiredFeatures.localStorage) return;
+    
+    const savedData = localStorage.getItem('sponsorFormData');
+    if (savedData) {
+        const formData = JSON.parse(savedData);
+        Object.entries(formData).forEach(([id, value]) => {
+            const field = document.getElementById(id);
+            if (field) field.value = value;
+        });
+    }
+}
+
+// Rate limiting for form submission
+const SUBMIT_COOLDOWN = 1000; // 1 second
+let lastSubmitTime = 0;
+
+// Update form submission handler
 document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    // Rate limiting check
+    const now = Date.now();
+    if (now - lastSubmitTime < SUBMIT_COOLDOWN) {
+        alert('Please wait a moment before submitting again.');
+        return;
+    }
+    lastSubmitTime = now;
+
+    // Validate all fields
+    let isValid = true;
+    document.querySelectorAll('#sponsorForm input[required], #sponsorForm textarea[required]').forEach(field => {
+        if (!validateField(field)) {
+            isValid = false;
+        }
+    });
+
+    if (!isValid) {
+        return;
+    }
 
     // Get the submit button and show loading state
     const submitButton = document.querySelector(".submit-button");
     submitButton.disabled = true;
     submitButton.textContent = "Submitting...";
-    submitButton.style.opacity = "0.7";
-    submitButton.style.cursor = "not-allowed";
+    submitButton.setAttribute('aria-busy', 'true');
 
     logDebug("🚀 Form Submission Started");
 
@@ -360,22 +539,35 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         // Reload sponsorships to update the map
         await loadSponsorships();
         
+        // Clear saved form data on successful submission
+        if (hasRequiredFeatures.localStorage) {
+            localStorage.removeItem('sponsorFormData');
+        }
+        
     } catch (error) {
         logDebug("❌ Submission Failed:", error.message);
         alert(error.message);
         // Make sure to reset body overflow even on error
         document.body.style.overflow = "auto";
     } finally {
-        // Reset button state
         submitButton.disabled = false;
         submitButton.textContent = "Submit Sponsorship";
-        submitButton.style.opacity = "1";
-        submitButton.style.cursor = "pointer";
+        submitButton.setAttribute('aria-busy', 'false');
     }
 });
 
 // Load sponsorships when page loads
 document.addEventListener("DOMContentLoaded", () => {
+    // Remove no-js class
+    document.documentElement.classList.remove('no-js');
+    
+    // Load saved form data
+    loadSavedFormData();
+    
+    // Save form data periodically
+    setInterval(saveFormData, 5000);
+    
+    // Initialize existing functionality
     loadSponsorships();
     initMobileMapControls();
     updateCountdown();
