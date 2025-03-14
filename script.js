@@ -251,9 +251,12 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
 
     logDebug("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
 
+    // Create form and iframe elements outside try block so we can clean them up in finally
+    const form = document.createElement('form');
+    const iframe = document.createElement('iframe');
+    
     try {
-        // Create a form element
-        const form = document.createElement('form');
+        // Configure form
         form.method = 'POST';
         form.action = googleScriptURL;
         form.target = 'hidden_iframe';
@@ -267,11 +270,13 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
             form.appendChild(input);
         });
 
-        // Create hidden iframe
-        const iframe = document.createElement('iframe');
+        // Configure iframe
         iframe.name = 'hidden_iframe';
         iframe.style.display = 'none';
+        
+        // Add elements to document
         document.body.appendChild(iframe);
+        document.body.appendChild(form);
 
         // Set a timeout for the entire operation
         const timeoutPromise = new Promise((_, reject) => {
@@ -289,10 +294,6 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         // Race between submission and timeout
         await Promise.race([submissionPromise, timeoutPromise]);
 
-        // Clean up
-        document.body.removeChild(form);
-        document.body.removeChild(iframe);
-
         // Show success message
         alert("🎉 Sponsorship submitted successfully!");
         
@@ -309,6 +310,14 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         logDebug("❌ Submission Failed:", error.message);
         alert(error.message);
     } finally {
+        // Clean up form and iframe safely
+        if (form && form.parentNode) {
+            form.parentNode.removeChild(form);
+        }
+        if (iframe && iframe.parentNode) {
+            iframe.parentNode.removeChild(iframe);
+        }
+        
         // Reset button state
         submitButton.disabled = false;
         submitButton.textContent = "Submit Sponsorship";
