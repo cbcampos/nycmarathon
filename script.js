@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbz2mIJbEwi4lYKwOdy9WyHH81DSOMkPvy9w8Xy0uRoHDFQmCPyvspn2x5kkKnRvz5WhGA/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbzNvrwrZRcX8M2Vy7H3u1l3nTgZ97-hboVxnNnJRn2kbmaaRNihf1oWzmpAA-CAOk7jgg/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -314,8 +314,9 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         // Show success message
         alert("🎉 Sponsorship submitted successfully!");
         
-        // Close the modal
+        // Close the modal and reset body overflow
         modal.style.display = "none";
+        document.body.style.overflow = "auto";
         
         // Reset the form
         document.getElementById("sponsorForm").reset();
@@ -326,6 +327,8 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     } catch (error) {
         logDebug("❌ Submission Failed:", error.message);
         alert(error.message);
+        // Make sure to reset body overflow even on error
+        document.body.style.overflow = "auto";
     } finally {
         // Reset button state
         submitButton.disabled = false;
