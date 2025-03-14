@@ -3,11 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Support Chris's 2025 NYC Marathon fundraiser for KultureCity. Sponsor a mile to support inclusion.">
+    <meta name="theme-color" content="#0a1744">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://script.google.com; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' https://script.google.com 'unsafe-inline';">
     <title>2025 NYC Marathon Sponsorship</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <noscript>
+        <style>
+            .js-only { display: none !important; }
+            .no-js-message { display: block !important; }
+        </style>
+    </noscript>
 </head>
 <body>
-    <header>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    
+    <header role="banner">
         <div class="container">
             <div class="hero">
                 <h1>Come run the <span>2025 New York City Marathon</span> with me</h1>
@@ -16,74 +28,95 @@
         </div>
     </header>
 
-    <div class="container">
-        <div class="map-container">
-            <img src="nyc-marathon-map.jpg" alt="NYC Marathon Map" class="map-image">
-            <div id="mile-markers"></div>
-        </div>
+    <main id="main-content" role="main">
+        <div class="container">
+            <div class="no-js-message" style="display: none;">
+                <p>Please enable JavaScript to view the interactive map and sponsor miles.</p>
+            </div>
 
-        <div class="progress-section">
-            <div class="progress-text">
-                <div id="amountRaised">$0 raised so far</div>
-                <div class="goal-container">
-                    <div>Overall Goal: $5,000</div>
-                    <a href="https://kulturecity.org" target="_blank" class="view-progress-btn">View full progress</a>
-                </div>
+            <div class="loading-skeleton js-only" aria-hidden="true">
+                <div class="skeleton-map"></div>
+                <div class="skeleton-progress"></div>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill"></div>
+
+            <div class="map-container js-only" role="region" aria-label="NYC Marathon Map with Mile Markers">
+                <img src="nyc-marathon-map.jpg" alt="NYC Marathon Map" class="map-image" loading="lazy">
+                <div id="mile-markers" role="group" aria-label="Interactive mile markers"></div>
             </div>
-            <div class="progress-text-center">Mile Sponsors Goal: $2,600</div>
-            <div class="bottom-section">
-                <div class="logo-container">
-                    <img src="kulturecity-logo.png" alt="KultureCity Logo" class="logo">
+
+            <div class="progress-section" role="region" aria-label="Fundraising Progress">
+                <div class="progress-text">
+                    <div id="amountRaised" aria-live="polite">$0 raised so far</div>
+                    <div class="goal-container">
+                        <div>Overall Goal: $5,000</div>
+                        <a href="https://kulturecity.org" target="_blank" rel="noopener noreferrer" class="view-progress-btn">View full progress</a>
+                    </div>
                 </div>
-                <div class="countdown-container">
-                    <div class="days-number" id="daysLeft"></div>
-                    <div class="days-text">days until marathon</div>
+                <div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-fill"></div>
+                </div>
+                <div class="progress-text-center">Mile Sponsors Goal: $2,600</div>
+                <div class="bottom-section">
+                    <div class="logo-container">
+                        <img src="kulturecity-logo.png" alt="KultureCity Logo" class="logo" loading="lazy">
+                    </div>
+                    <div class="countdown-container" aria-live="polite">
+                        <div class="days-number" id="daysLeft"></div>
+                        <div class="days-text">days until marathon</div>
+                    </div>
+                </div>
+                <div class="share-container">
+                    <button class="share-button" aria-label="Share this fundraiser">
+                        Share this fundraiser
+                    </button>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Sponsorship Form Modal -->
-    <div id="sponsorModal" class="modal">
+    <div id="sponsorModal" class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
         <div class="modal-content">
-            <span class="close" onclick="closeSponsorModal()">&times;</span>
-            <h2>Sponsor Mile <span id="mileNumber"></span></h2>
+            <button class="close" aria-label="Close modal" data-action="close-modal">&times;</button>
+            <h2 id="modalTitle">Sponsor Mile <span id="mileNumber"></span></h2>
             <p>Your $100 donation helps support inclusion through KultureCity.</p>
-            <form id="sponsorForm">
+            <form id="sponsorForm" novalidate>
                 <div class="form-group">
                     <label for="firstName">First Name *</label>
-                    <input type="text" id="firstName" required>
+                    <input type="text" id="firstName" required aria-required="true" autocomplete="given-name">
+                    <div class="error-message" aria-live="polite"></div>
                 </div>
                 <div class="form-group">
                     <label for="lastName">Last Name *</label>
-                    <input type="text" id="lastName" required>
+                    <input type="text" id="lastName" required aria-required="true" autocomplete="family-name">
+                    <div class="error-message" aria-live="polite"></div>
                 </div>
                 <div class="form-group">
                     <label for="email">Email *</label>
-                    <input type="email" id="email" required>
+                    <input type="email" id="email" required aria-required="true" autocomplete="email" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$">
+                    <div class="error-message" aria-live="polite"></div>
                 </div>
                 <div class="form-group">
                     <label for="phone">Phone Number *</label>
-                    <input type="tel" id="phone" required>
+                    <input type="tel" id="phone" required aria-required="true" autocomplete="tel" pattern="[0-9]{10}">
+                    <div class="error-message" aria-live="polite"></div>
                 </div>
                 <div class="form-group">
                     <label for="message">Your Encouraging Message *</label>
-                    <textarea id="message" required placeholder="Share words of encouragement!"></textarea>
+                    <textarea id="message" required aria-required="true" placeholder="Share words of encouragement!" maxlength="500"></textarea>
+                    <div class="error-message" aria-live="polite"></div>
                 </div>
                 <div class="form-group">
                     <label for="amount">Donation Amount *</label>
-                    <input type="number" id="amount" min="100" value="100" required>
+                    <input type="number" id="amount" min="100" value="100" required aria-required="true">
                     <small>Minimum $100 to sponsor a mile</small>
+                    <div class="error-message" aria-live="polite"></div>
                 </div>
-                <button type="submit" class="submit-button">Submit Sponsorship</button>
+                <button type="submit" class="submit-button" disabled>Submit Sponsorship</button>
             </form>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js" defer></script>
 
     <!-- Debug Panel and Toggle (Commented out) -->
     <!--
