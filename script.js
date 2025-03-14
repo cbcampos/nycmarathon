@@ -800,15 +800,31 @@ async function displayTrainingStats(stats) {
     try {
         logDebug("📊 Processing training stats:", stats);
         
-        if (!stats || stats.error) {
-            const error = stats?.error || 'Unable to load training data';
-            logDebug("❌ Error in training stats:", error);
-            throw new Error(error);
+        // Check if stats exists and has required properties
+        if (!stats) {
+            logDebug("❌ No stats data received");
+            throw new Error('No training data received');
         }
 
-        if (typeof stats.totalMiles !== 'number') {
-            logDebug("❌ Invalid miles data in response");
-            throw new Error('Invalid training data format');
+        // Log the exact structure we received
+        logDebug("📊 Received stats structure:", JSON.stringify(stats));
+
+        // Validate miles is a number
+        if (typeof stats.miles !== 'number') {
+            logDebug(`❌ Invalid miles data type: ${typeof stats.miles}, value: ${stats.miles}`);
+            throw new Error('Invalid miles data format');
+        }
+
+        // Validate activities is a number
+        if (typeof stats.activities !== 'number') {
+            logDebug(`❌ Invalid activities data type: ${typeof stats.activities}, value: ${stats.activities}`);
+            throw new Error('Invalid activities data format');
+        }
+
+        // Validate lastUpdated is a string
+        if (typeof stats.lastUpdated !== 'string') {
+            logDebug(`❌ Invalid lastUpdated data type: ${typeof stats.lastUpdated}, value: ${stats.lastUpdated}`);
+            throw new Error('Invalid lastUpdated format');
         }
 
         const formattedDate = new Date(stats.lastUpdated).toLocaleDateString('en-US', {
@@ -817,13 +833,14 @@ async function displayTrainingStats(stats) {
             year: 'numeric'
         });
 
-        logDebug(`✅ Successfully loaded training data: ${stats.totalMiles} miles across ${stats.activityCount} runs`);
+        logDebug(`✅ Successfully processed training data: ${stats.miles} miles across ${stats.activities} runs`);
+        
         statsContent.innerHTML = `
             <p class="training-text">
-                Chris has run <span class="miles">${stats.totalMiles}</span> miles in 2025
+                Chris has run <span class="miles">${stats.miles}</span> miles in 2025
                 <br>
                 <span class="training-details">
-                    Across ${stats.activityCount} training runs
+                    Across ${stats.activities} training runs
                     <br>
                     <small>Last updated: ${formattedDate}</small>
                 </span>
