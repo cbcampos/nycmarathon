@@ -27,7 +27,10 @@ header {
     background-color: #0a1744;
     color: white;
     padding: 20px 0;
-    flex-shrink: 0; /* Prevent header from shrinking */
+    flex-shrink: 0;
+    height: 100px;
+    display: flex;
+    align-items: center;
 }
 
 .hero {
@@ -38,6 +41,7 @@ header {
 .hero h1 {
     font-size: 32px;
     margin: 0;
+    line-height: 1.2;
 }
 
 .hero span {
@@ -48,6 +52,7 @@ header {
 .hero p {
     font-size: 20px;
     margin: 5px 0 0;
+    line-height: 1.2;
 }
 
 /* Map Container */
@@ -381,6 +386,21 @@ textarea {
 
 /* Mobile Responsive Styles */
 @media screen and (max-width: 768px) {
+    header {
+        height: 15vh;
+        min-height: 80px;
+        max-height: 100px;
+        padding: 10px 0;
+    }
+
+    .hero h1 {
+        font-size: 24px;
+    }
+
+    .hero p {
+        font-size: 16px;
+    }
+
     body {
         height: 100vh;
         overflow: hidden;
@@ -391,12 +411,6 @@ textarea {
         padding: 10px;
         display: flex;
         flex-direction: column;
-    }
-
-    header {
-        height: 15vh;
-        min-height: 80px;
-        padding: 10px 0;
     }
 
     .map-container {
@@ -420,6 +434,13 @@ textarea {
 
     .map-wrapper {
         transform-origin: center center;
+    }
+}
+
+/* Medium screens - prevent layout jump */
+@media screen and (min-width: 769px) and (max-width: 900px) {
+    .hero h1 {
+        font-size: 28px;
     }
 }
 
