@@ -1,5 +1,4 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbwMSKx0KRo0nNriPKW7t7kA1UlIrzXhLI_Fym_QdFS60Lvu8PhYt4SunICrVzgvUMMU/exec";
-
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -680,3 +679,40 @@ function updateCountdown() {
     const days = Math.ceil(difference / (1000 * 60 * 60 * 24));
     document.getElementById('daysLeft').textContent = days;
 }
+
+// Handle video overlay
+function initVideoOverlay() {
+    const overlay = document.getElementById('videoOverlay');
+    const closeButton = document.querySelector('.close-video');
+    
+    if (closeButton) {
+        closeButton.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            // Stop video playback when closed
+            const iframe = overlay.querySelector('iframe');
+            if (iframe) {
+                const src = iframe.src;
+                iframe.src = src;
+            }
+        });
+    }
+
+    // Also close on overlay click (but not video click)
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            closeButton.click();
+        }
+    });
+
+    // Close on escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay.style.display !== 'none') {
+            closeButton.click();
+        }
+    });
+}
+
+// Initialize video overlay when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    initVideoOverlay();
+});
