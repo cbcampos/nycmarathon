@@ -723,21 +723,67 @@ document.addEventListener('DOMContentLoaded', () => {
 // Function to fetch training stats
 function fetchTrainingStats() {
     const script = document.createElement('script');
-    script.src = `${googleScriptURL}?type=training&callback=displayTrainingStats`;
+    const callbackName = 'trainingCallback_' + Math.round(100000 * Math.random());
+    
+    // Create a promise that will resolve when the callback is called
+    const statsPromise = new Promise((resolve, reject) => {
+        window[callbackName] = (response) => {
+            resolve(response);
+            // Clean up
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            delete window[callbackName];
+        };
+        
+        // Handle script load error
+        script.onerror = () => {
+            reject(new Error('Failed to load training data'));
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            delete window[callbackName];
+        };
+
+        // Set timeout
+        setTimeout(() => {
+            reject(new Error('Training data request timed out'));
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+            }
+            delete window[callbackName];
+        }, 5000);
+    });
+
+    script.src = `${googleScriptURL}?type=training&callback=${callbackName}`;
     document.body.appendChild(script);
+    
+    return statsPromise;
 }
 
 // Callback function to display training stats
-function displayTrainingStats(stats) {
+async function displayTrainingStats(stats) {
     const statsContent = document.querySelector('.stats-content');
-    if (!stats || stats.error) {
-        statsContent.innerHTML = '<div class="error">Unable to load training data</div>';
-        return;
-    }
+    if (!statsContent) return;
 
-    statsContent.innerHTML = `
-        <p class="training-text">Chris has run ${stats.totalMiles} miles in 2025</p>
-    `;
+    try {
+        if (!stats || stats.error) {
+            throw new Error(stats?.error || 'Unable to load training data');
+        }
+
+        if (!stats.totalMiles && stats.totalMiles !== 0) {
+            throw new Error('No training data available');
+        }
+
+        statsContent.innerHTML = `
+            <p class="training-text">Chris has run ${stats.totalMiles} miles in 2025</p>
+        `;
+    } catch (error) {
+        console.error('Error displaying training stats:', error);
+        statsContent.innerHTML = `
+            <div class="loading">Unable to load training data. Please try again later.</div>
+        `;
+    }
 }
 
 // Initialize everything when the page loads
