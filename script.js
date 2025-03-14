@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzNvrwrZRcX8M2Vy7H3u1l3nTgZ97-hboVxnNnJRn2kbmaaRNihf1oWzmpAA-CAOk7jgg/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbwSX5mfUX3uub8hvFS2WFrupWZJBIK_VM91g1ckiYV5AeoOzLa92_FDV6L-2PPSK4ttzQ/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -311,8 +311,12 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         
         logDebug("✅ Submission successful:", response);
 
-        // Show success message
-        alert("🎉 Sponsorship submitted successfully!");
+        // Show appropriate success message based on email status
+        if (response.emailSent) {
+            alert("🎉 Sponsorship submitted successfully! Check your email for payment instructions.");
+        } else {
+            alert("🎉 Sponsorship submitted successfully! You will receive payment instructions shortly.");
+        }
         
         // Close the modal and reset body overflow
         modal.style.display = "none";
