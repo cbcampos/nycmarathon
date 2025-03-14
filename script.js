@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzNvrwrZRcX8M2Vy7H3u1l3nTgZ97-hboVxnNnJRn2kbmaaRNihf1oWzmpAA-CAOk7jgg/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbz2mIJbEwi4lYKwOdy9WyHH81DSOMkPvy9w8Xy0uRoHDFQmCPyvspn2x5kkKnRvz5WhGA/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -251,48 +251,65 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
 
     logDebug("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
 
-    // Create form and iframe elements outside try block so we can clean them up in finally
-    const form = document.createElement('form');
-    const iframe = document.createElement('iframe');
-    
     try {
-        // Configure form
-        form.method = 'POST';
-        form.action = googleScriptURL;
-        form.target = 'hidden_iframe';
-
-        // Add form data as hidden fields
-        Object.entries(formData).forEach(([key, value]) => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = value;
-            form.appendChild(input);
-        });
-
-        // Configure iframe
-        iframe.name = 'hidden_iframe';
-        iframe.style.display = 'none';
+        // Create a unique callback name
+        const callbackName = 'formCallback_' + Math.round(100000 * Math.random());
         
-        // Add elements to document
-        document.body.appendChild(iframe);
-        document.body.appendChild(form);
-
-        // Set a timeout for the entire operation
-        const timeoutPromise = new Promise((_, reject) => {
-            setTimeout(() => reject(new Error('Submission is taking longer than expected, but your sponsorship may have been recorded. Please check back in a few minutes.')), 5000);
+        // Create a script element for JSONP
+        const script = document.createElement('script');
+        
+        // Create the URL with all form data as query parameters
+        const params = new URLSearchParams({
+            ...formData,
+            callback: callbackName
         });
-
-        // Create a promise for form submission
-        const submissionPromise = new Promise((resolve) => {
-            iframe.onload = () => {
-                resolve();
+        
+        script.src = `${googleScriptURL}?${params.toString()}`;
+        
+        // Create a promise that will resolve when the callback is called
+        const submissionPromise = new Promise((resolve, reject) => {
+            // Set up the callback function
+            window[callbackName] = (response) => {
+                if (response && response.success) {
+                    resolve(response);
+                } else {
+                    reject(new Error(response ? response.error : 'Submission failed'));
+                }
+                // Clean up
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                delete window[callbackName];
             };
-            form.submit();
+            
+            // Handle script load error
+            script.onerror = () => {
+                reject(new Error('Failed to submit form'));
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                delete window[callbackName];
+            };
         });
 
-        // Race between submission and timeout
-        await Promise.race([submissionPromise, timeoutPromise]);
+        // Set a timeout
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => {
+                reject(new Error('Submission is taking longer than expected, but your sponsorship may have been recorded. Please check back in a few minutes.'));
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+                delete window[callbackName];
+            }, 5000);
+        });
+
+        // Add script to document to start the request
+        document.body.appendChild(script);
+
+        // Wait for either success or timeout
+        const response = await Promise.race([submissionPromise, timeoutPromise]);
+        
+        logDebug("✅ Submission successful:", response);
 
         // Show success message
         alert("🎉 Sponsorship submitted successfully!");
@@ -310,14 +327,6 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         logDebug("❌ Submission Failed:", error.message);
         alert(error.message);
     } finally {
-        // Clean up form and iframe safely
-        if (form && form.parentNode) {
-            form.parentNode.removeChild(form);
-        }
-        if (iframe && iframe.parentNode) {
-            iframe.parentNode.removeChild(iframe);
-        }
-        
         // Reset button state
         submitButton.disabled = false;
         submitButton.textContent = "Submit Sponsorship";
