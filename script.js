@@ -245,10 +245,13 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     logDebug("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
 
     try {
+        // Create a unique callback name for this submission
+        const callbackName = 'formCallback_' + Math.round(100000 * Math.random());
+        
         // Create a form element
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = googleScriptURL;
+        form.action = `${googleScriptURL}?callback=${callbackName}`;
         form.target = 'hidden_iframe';
 
         // Add form data as hidden fields
@@ -266,12 +269,37 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
 
+        // Create a promise that will resolve when we get a response
+        const submissionPromise = new Promise((resolve, reject) => {
+            window[callbackName] = (response) => {
+                if (response && response.success) {
+                    resolve(response);
+                } else {
+                    reject(new Error(response ? response.error : 'Submission failed'));
+                }
+                // Clean up
+                delete window[callbackName];
+            };
+
+            // Set a timeout in case we don't get a response
+            setTimeout(() => {
+                reject(new Error('Submission timeout - no response received'));
+                delete window[callbackName];
+            }, 10000);
+
+            // Handle iframe load event
+            iframe.onload = () => {
+                logDebug("📨 Form submitted to iframe");
+            };
+        });
+
         // Add form to document and submit
         document.body.appendChild(form);
         form.submit();
 
-        // Wait for submission to complete
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait for the response
+        const response = await submissionPromise;
+        logDebug("✅ Submission successful:", response);
 
         // Clean up
         document.body.removeChild(form);
@@ -290,8 +318,8 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         await loadSponsorships();
         
     } catch (error) {
-        logDebug("❌ Submission Failed:", error);
-        alert("Error submitting sponsorship. Check console for details.");
+        logDebug("❌ Submission Failed:", error.message);
+        alert(`Error submitting sponsorship: ${error.message}`);
     }
 });
 
