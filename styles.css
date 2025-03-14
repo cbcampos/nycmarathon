@@ -28,7 +28,7 @@ header {
     color: white;
     padding: 20px 0;
     flex-shrink: 0;
-    height: 100px;
+    height: 80px;
     display: flex;
     align-items: center;
 }
@@ -42,11 +42,6 @@ header {
     font-size: 32px;
     margin: 0;
     line-height: 1.2;
-}
-
-.hero span {
-    color: #ff3b3b;
-    font-weight: bold;
 }
 
 .hero p {
@@ -902,34 +897,34 @@ a:focus-visible {
 
 /* Training Stats Section */
 .training-stats-container {
-    max-width: 800px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    margin: 20px 0;
+    padding: 0;
+    width: 100%;
 }
 
 .training-stats {
     background-color: #f8f9fa;
     border-radius: 8px;
-    padding: 2rem;
+    padding: 20px;
     text-align: center;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .training-stats h2 {
     color: #34495e;
-    margin-bottom: 1.5rem;
-    font-size: 1.8rem;
+    margin-bottom: 15px;
+    font-size: 1.5rem;
 }
 
 .stats-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1rem;
+    gap: 0.5rem;
 }
 
 .miles-count {
-    font-size: 2.5rem;
+    font-size: 2rem;
     color: #2c3e50;
     font-weight: bold;
     margin: 0;
@@ -937,7 +932,7 @@ a:focus-visible {
 
 .runs-count {
     color: #7f8c8d;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     margin: 0;
 }
 
