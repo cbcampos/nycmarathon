@@ -333,6 +333,14 @@ textarea {
     margin: 0 auto;
 }
 
+.progress-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
 .progress-bar {
     background-color: #fff;
     border-radius: 20px;
@@ -349,43 +357,24 @@ textarea {
     transition: width 1s ease;
 }
 
-.progress-text {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 16px;
-    margin-bottom: 10px;
-    position: relative;
-}
-
 .progress-text-center {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    white-space: nowrap;
     text-align: center;
-}
-
-.progress-amount {
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.progress-amount span {
-    color: #ff3b3b;
+    margin: 15px 0;
+    font-size: 16px;
 }
 
 /* Logo Container */
 .logo-container {
     margin-top: 20px;
     padding: 10px;
+    text-align: center;
 }
 
 .logo {
     max-width: 200px;
     height: auto;
-    margin: 0 auto;
     display: block;
+    margin: 0 auto;
 }
 
 /* Thank You Message */
