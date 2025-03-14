@@ -1,0 +1,23 @@
+{
+    "name": "NYC Marathon Sponsorship",
+    "short_name": "NYC Marathon",
+    "description": "Support Chris's 2025 NYC Marathon fundraiser for KultureCity. Sponsor a mile to support inclusion.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#f0f8ff",
+    "theme_color": "#0a1744",
+    "icons": [
+        {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+} 
