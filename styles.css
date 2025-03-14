@@ -126,6 +126,7 @@ header {
     transform-origin: center;
     margin-left: -15px;
     margin-top: -15px;
+    transform: translate(1.7vw, 4.2vh);
 }
 
 .mile-marker.sponsored {
@@ -133,7 +134,7 @@ header {
 }
 
 .mile-marker:hover {
-    transform: scale(1.2);
+    transform: translate(1.7vw, 4.2vh) scale(1.2);
     z-index: 10;
 }
 
