@@ -120,9 +120,14 @@ async function loadSponsorships() {
         document.body.appendChild(script);
         
         // Wait for the data
-        const sponsorships = await sponsorshipsPromise;
-        logDebug("✅ Sponsorship data loaded:", sponsorships);
+        const response = await sponsorshipsPromise;
+        logDebug("✅ Sponsorship data loaded:", response);
 
+        if (!response.success) {
+            throw new Error(response.error || 'Failed to load sponsorship data');
+        }
+
+        const sponsorships = response.data;
         let totalRaised = 0;
         miles.forEach(mile => {
             if (sponsorships[mile.number]) {
