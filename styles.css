@@ -962,17 +962,29 @@ a:focus-visible {
 }
 
 .training-text {
-    color: white;
-    font-size: 14px;
-    margin: 10px 0 0;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    font-size: 1.5em;
+    text-align: center;
+    margin: 1em 0;
+    color: #0a1744;
 }
 
-.loading {
-    color: rgba(255, 255, 255, 0.7);
-    font-style: italic;
-    font-size: 14px;
+.training-text .miles {
+    font-weight: bold;
+    color: #ff3b3b;
+}
+
+.training-text .training-details {
+    display: block;
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 0.5em;
+}
+
+.training-text .training-details small {
+    display: block;
+    font-size: 0.9em;
+    color: #888;
+    margin-top: 0.3em;
 }
 
 @media screen and (max-width: 768px) {
