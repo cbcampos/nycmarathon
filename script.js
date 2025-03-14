@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbznALa2PiWEFzSjhzEWmS32dYXFJP9-RzcJa3UJ4SU5Fs0N2L9LZhK7VJhvpHHOEy0/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbxuOhtIF4fOUtkgvTPXyfSJQkr1k35mESy2vSz3E3Uaww_qntQP3HeDpn56tLrP0m090g/exec";
 
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
