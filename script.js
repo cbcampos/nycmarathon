@@ -339,4 +339,117 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
 });
 
 // Load sponsorships when page loads
-document.addEventListener("DOMContentLoaded", loadSponsorships);
+document.addEventListener("DOMContentLoaded", () => {
+    loadSponsorships();
+    initMobileMapControls();
+});
+
+// Add after your existing constants at the top
+let isDragging = false;
+let startX = 0;
+let scrollLeft = 0;
+let currentSection = 0;
+const TOTAL_SECTIONS = 2; // 0, 1, 2 for left, middle, right
+
+// Initialize mobile map controls
+function initMobileMapControls() {
+    // Wrap the map image in a scrollable container
+    const mapImage = document.querySelector('.map-image');
+    if (!mapImage.parentElement.classList.contains('map-wrapper')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'map-wrapper';
+        mapImage.parentNode.insertBefore(wrapper, mapImage);
+        wrapper.appendChild(mapImage);
+        
+        // Add navigation buttons
+        const nav = document.createElement('div');
+        nav.className = 'map-nav';
+        nav.innerHTML = `
+            <button class="nav-button" id="prevBtn">←</button>
+            <button class="nav-button" id="nextBtn">→</button>
+        `;
+        mileContainer.parentElement.appendChild(nav);
+        
+        // Add event listeners for buttons
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        
+        prevBtn.addEventListener('click', () => navigateMap('prev'));
+        nextBtn.addEventListener('click', () => navigateMap('next'));
+        
+        // Update button states
+        updateNavigationButtons();
+    }
+
+    // Add touch event listeners
+    const wrapper = document.querySelector('.map-wrapper');
+    
+    wrapper.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startX = e.touches[0].pageX - wrapper.offsetLeft;
+        scrollLeft = wrapper.scrollLeft;
+    });
+
+    wrapper.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.touches[0].pageX - wrapper.offsetLeft;
+        const walk = (x - startX) * 2;
+        const currentTransform = getCurrentTransform();
+        setMapPosition(currentTransform - walk);
+    });
+
+    wrapper.addEventListener('touchend', () => {
+        isDragging = false;
+        snapToNearestSection();
+    });
+}
+
+// Navigate map sections
+function navigateMap(direction) {
+    if (direction === 'prev' && currentSection > 0) {
+        currentSection--;
+    } else if (direction === 'next' && currentSection < TOTAL_SECTIONS) {
+        currentSection++;
+    }
+    
+    const position = -(currentSection * 33.33); // Each section is roughly 33.33% of the view
+    setMapPosition(position);
+    updateNavigationButtons();
+}
+
+// Update navigation button states
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    
+    if (prevBtn && nextBtn) {
+        prevBtn.disabled = currentSection === 0;
+        nextBtn.disabled = currentSection === TOTAL_SECTIONS;
+    }
+}
+
+// Get current transform value
+function getCurrentTransform() {
+    const wrapper = document.querySelector('.map-wrapper');
+    const transform = window.getComputedStyle(wrapper).getPropertyValue('transform');
+    const matrix = new DOMMatrix(transform);
+    return matrix.m41 / wrapper.offsetWidth * 100;
+}
+
+// Set map position
+function setMapPosition(percentage) {
+    const wrapper = document.querySelector('.map-wrapper');
+    wrapper.style.transform = `scale(1.5) translateX(${percentage}%)`;
+}
+
+// Snap to nearest section after dragging
+function snapToNearestSection() {
+    const currentPosition = getCurrentTransform();
+    const sectionWidth = 33.33;
+    currentSection = Math.round(Math.abs(currentPosition) / sectionWidth);
+    currentSection = Math.max(0, Math.min(currentSection, TOTAL_SECTIONS));
+    const position = -(currentSection * sectionWidth);
+    setMapPosition(position);
+    updateNavigationButtons();
+}
