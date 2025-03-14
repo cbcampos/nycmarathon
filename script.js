@@ -42,8 +42,8 @@ function pixelToPercentage(x, y) {
     // Original map dimensions from the coordinate system
     const MAP_WIDTH = 4001;
     const MAP_HEIGHT = 1817;
-    const MAP_OFFSET_X = 64;
-    const MAP_OFFSET_Y = 76;
+    const MAP_OFFSET_X = 0;
+    const MAP_OFFSET_Y = 0;
 
     // Calculate percentages from the original map dimensions
     const xPercent = ((x - MAP_OFFSET_X) / MAP_WIDTH) * 100;
