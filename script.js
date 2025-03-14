@@ -113,7 +113,15 @@ function renderMileMarkers() {
     mileContainer.innerHTML = "";
 
     const isMobile = window.innerWidth <= 768;
-    const scale = isMobile ? 1.5 : 1; // Adjust scale factor for mobile
+    const isSmallMobile = window.innerWidth <= 480;
+    
+    // Adjust scale based on screen size
+    let scale = 1;
+    if (isSmallMobile) {
+        scale = 0.8;
+    } else if (isMobile) {
+        scale = 0.9;
+    }
 
     miles.forEach(mile => {
         const marker = document.createElement("div");
@@ -121,11 +129,13 @@ function renderMileMarkers() {
         marker.textContent = mile.number;
         marker.dataset.mile = mile.number;
 
-        // Apply position with scale adjustment for mobile
-        const left = parseFloat(mile.coords.left) * scale;
-        const top = parseFloat(mile.coords.top) * scale;
+        // Convert percentage strings to numbers and apply scaling
+        const left = parseFloat(mile.coords.left);
+        const top = parseFloat(mile.coords.top);
+        
         marker.style.left = `${left}%`;
         marker.style.top = `${top}%`;
+        marker.style.transform = `scale(${scale})`;
 
         // Event listeners
         marker.addEventListener("mouseover", (event) => showTooltip(event, mile));
@@ -356,71 +366,72 @@ function initMobileMapControls() {
     const wrapper = document.querySelector('.map-wrapper');
     if (!wrapper) return;
 
-    // Wrap the map image if needed
-    const mapImage = document.querySelector('.map-image');
-    if (!mapImage.parentElement.classList.contains('map-wrapper')) {
-        wrapper.className = 'map-wrapper';
-        mapImage.parentNode.insertBefore(wrapper, mapImage);
-        wrapper.appendChild(mapImage);
-        
-        // Move mile markers inside wrapper
-        const mileMarkersContainer = document.getElementById('mile-markers');
-        if (mileMarkersContainer) {
-            wrapper.appendChild(mileMarkersContainer);
-        }
-    }
-
     let isDragging = false;
     let startX = 0;
     let startY = 0;
     let currentX = 0;
     let currentY = 0;
+    let scale = 1;
 
-    // Touch event handlers
-    wrapper.addEventListener('touchstart', handleDragStart, { passive: true });
-    wrapper.addEventListener('touchmove', handleDragMove, { passive: true });
-    wrapper.addEventListener('touchend', handleDragEnd);
+    // Set initial scale based on screen width
+    function updateScale() {
+        const containerWidth = wrapper.parentElement.offsetWidth;
+        const mapWidth = wrapper.offsetWidth;
+        
+        if (window.innerWidth <= 480) {
+            scale = 2;
+        } else if (window.innerWidth <= 768) {
+            scale = 1.75;
+        } else if (window.innerWidth <= 1024) {
+            scale = 1.5;
+        } else {
+            scale = 1;
+        }
+        
+        wrapper.style.transform = `scale(${scale}) translate(${currentX}px, ${currentY}px)`;
+    }
 
-    // Mouse event handlers
-    wrapper.addEventListener('mousedown', handleDragStart);
-    wrapper.addEventListener('mousemove', handleDragMove);
-    wrapper.addEventListener('mouseup', handleDragEnd);
-    wrapper.addEventListener('mouseleave', handleDragEnd);
+    // Update scale on window resize
+    window.addEventListener('resize', updateScale);
+    updateScale();
 
+    // Event handlers
     function handleDragStart(e) {
+        if (e.type.includes('mouse') && e.button !== 0) return; // Only left mouse button
         isDragging = true;
         wrapper.style.transition = 'none';
         
-        // Get start position for either mouse or touch
         const pos = e.type.includes('mouse') ? e : e.touches[0];
         startX = pos.pageX - currentX;
         startY = pos.pageY - currentY;
+        
+        e.preventDefault();
     }
 
     function handleDragMove(e) {
         if (!isDragging) return;
-
-        // Get current position for either mouse or touch
+        
         const pos = e.type.includes('mouse') ? e : e.touches[0];
         
         // Calculate new position
-        const x = pos.pageX - startX;
-        const y = pos.pageY - startY;
+        const x = (pos.pageX - startX);
+        const y = (pos.pageY - startY);
 
-        // Calculate bounds based on map size
-        const bounds = wrapper.getBoundingClientRect();
+        // Calculate bounds based on scaled dimensions
         const containerBounds = wrapper.parentElement.getBoundingClientRect();
+        const scaledWidth = wrapper.offsetWidth * scale;
+        const scaledHeight = wrapper.offsetHeight * scale;
         
         // Calculate maximum allowed movement
-        const maxX = (bounds.width - containerBounds.width) / 2;
-        const maxY = (bounds.height - containerBounds.height) / 2;
+        const maxX = (scaledWidth - containerBounds.width) / (2 * scale);
+        const maxY = (scaledHeight - containerBounds.height) / (2 * scale);
 
         // Apply bounds
         currentX = Math.max(Math.min(x, maxX), -maxX);
         currentY = Math.max(Math.min(y, maxY), -maxY);
 
-        // Apply transform
-        wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+        // Apply transform with current scale
+        wrapper.style.transform = `scale(${scale}) translate(${currentX}px, ${currentY}px)`;
     }
 
     function handleDragEnd() {
@@ -428,7 +439,18 @@ function initMobileMapControls() {
         wrapper.style.transition = 'transform 0.3s ease-out';
     }
 
-    // Prevent default drag behavior on desktop
+    // Touch events
+    wrapper.addEventListener('touchstart', handleDragStart);
+    wrapper.addEventListener('touchmove', handleDragMove);
+    wrapper.addEventListener('touchend', handleDragEnd);
+
+    // Mouse events
+    wrapper.addEventListener('mousedown', handleDragStart);
+    wrapper.addEventListener('mousemove', handleDragMove);
+    wrapper.addEventListener('mouseup', handleDragEnd);
+    wrapper.addEventListener('mouseleave', handleDragEnd);
+
+    // Prevent default drag behavior
     wrapper.addEventListener('dragstart', (e) => e.preventDefault());
 }
 
