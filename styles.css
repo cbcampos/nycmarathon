@@ -42,17 +42,19 @@ header {
     font-size: 32px;
     margin: 0;
     line-height: 1.2;
-}
-
-.hero span {
-    color: #ff3b3b;
-    font-weight: bold;
+    color: white;
 }
 
 .hero p {
     font-size: 20px;
     margin: 5px 0 0;
     line-height: 1.2;
+    color: white;
+}
+
+.hero span {
+    color: #ff3b3b;
+    font-weight: bold;
 }
 
 /* Map Container */
