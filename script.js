@@ -1,4 +1,5 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzfM7ZlYUbZ9dP09G_b182kmUgKyCtuuABz8dpRqZZ_nzkz6fkDlvmeVhb9PaoJc3rjLg/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbwBgZPm7tmi0dA2vh0p9rNZLden7Xvler4AH_sTANOxPKosxMP7EH__lzycwuA1bZYORw/exec";
+
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -800,9 +801,9 @@ async function displayTrainingStats(stats) {
             throw new Error(error);
         }
 
-        if (!stats.totalMiles && stats.totalMiles !== 0) {
-            logDebug("❌ No miles data found in response");
-            throw new Error('No training data available');
+        if (typeof stats.totalMiles !== 'number') {
+            logDebug("❌ Invalid miles data in response");
+            throw new Error('Invalid training data format');
         }
 
         logDebug(`✅ Successfully loaded training data: ${stats.totalMiles} miles`);
