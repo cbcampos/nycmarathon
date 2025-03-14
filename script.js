@@ -1,4 +1,4 @@
-const googleScriptURL = "https://script.google.com/macros/s/AKfycbzxBVeWftOWSCTBGMfGdSiA83fS23lcHofwxUw_Nw6nUR9nfIw_mpjaQkdTIqxH5jJyKQ/exec";
+const googleScriptURL = "https://script.google.com/macros/s/AKfycbzNvrwrZRcX8M2Vy7H3u1l3nTgZ97-hboVxnNnJRn2kbmaaRNihf1oWzmpAA-CAOk7jgg/exec";
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
@@ -230,6 +230,13 @@ document.querySelectorAll("#sponsorForm input[required], #sponsorForm textarea[r
 document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    // Get the submit button and show loading state
+    const submitButton = document.querySelector(".submit-button");
+    submitButton.disabled = true;
+    submitButton.textContent = "Submitting...";
+    submitButton.style.opacity = "0.7";
+    submitButton.style.cursor = "not-allowed";
+
     logDebug("🚀 Form Submission Started");
 
     const formData = {
@@ -245,13 +252,10 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
     logDebug("📤 Submitting Form Data:", JSON.stringify(formData, null, 2));
 
     try {
-        // Create a unique callback name for this submission
-        const callbackName = 'formCallback_' + Math.round(100000 * Math.random());
-        
         // Create a form element
         const form = document.createElement('form');
         form.method = 'POST';
-        form.action = `${googleScriptURL}?callback=${callbackName}`;
+        form.action = googleScriptURL;
         form.target = 'hidden_iframe';
 
         // Add form data as hidden fields
@@ -269,37 +273,21 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         iframe.style.display = 'none';
         document.body.appendChild(iframe);
 
-        // Create a promise that will resolve when we get a response
-        const submissionPromise = new Promise((resolve, reject) => {
-            window[callbackName] = (response) => {
-                if (response && response.success) {
-                    resolve(response);
-                } else {
-                    reject(new Error(response ? response.error : 'Submission failed'));
-                }
-                // Clean up
-                delete window[callbackName];
-            };
-
-            // Set a timeout in case we don't get a response
-            setTimeout(() => {
-                reject(new Error('Submission timeout - no response received'));
-                delete window[callbackName];
-            }, 10000);
-
-            // Handle iframe load event
-            iframe.onload = () => {
-                logDebug("📨 Form submitted to iframe");
-            };
+        // Set a timeout for the entire operation
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Submission is taking longer than expected, but your sponsorship may have been recorded. Please check back in a few minutes.')), 5000);
         });
 
-        // Add form to document and submit
-        document.body.appendChild(form);
-        form.submit();
+        // Create a promise for form submission
+        const submissionPromise = new Promise((resolve) => {
+            iframe.onload = () => {
+                resolve();
+            };
+            form.submit();
+        });
 
-        // Wait for the response
-        const response = await submissionPromise;
-        logDebug("✅ Submission successful:", response);
+        // Race between submission and timeout
+        await Promise.race([submissionPromise, timeoutPromise]);
 
         // Clean up
         document.body.removeChild(form);
@@ -319,7 +307,13 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         
     } catch (error) {
         logDebug("❌ Submission Failed:", error.message);
-        alert(`Error submitting sponsorship: ${error.message}`);
+        alert(error.message);
+    } finally {
+        // Reset button state
+        submitButton.disabled = false;
+        submitButton.textContent = "Submit Sponsorship";
+        submitButton.style.opacity = "1";
+        submitButton.style.cursor = "pointer";
     }
 });
 
