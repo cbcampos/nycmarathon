@@ -348,14 +348,6 @@ document.addEventListener("DOMContentLoaded", () => {
     initMobileMapControls();
 });
 
-// Add after your existing constants at the top
-let isDragging = false;
-let startX = 0;
-let startTransform = 0;
-let currentSection = 0;
-const TOTAL_SECTIONS = 2;
-const SCROLL_SENSITIVITY = 0.5; // Reduce this value to make scrolling less sensitive
-
 // Initialize mobile map controls
 function initMobileMapControls() {
     // Only initialize mobile controls if we're on a mobile device
@@ -376,104 +368,60 @@ function initMobileMapControls() {
         if (mileMarkersContainer) {
             wrapper.appendChild(mileMarkersContainer);
         }
-        
-        // Add navigation buttons
-        const nav = document.createElement('div');
-        nav.className = 'map-nav';
-        nav.innerHTML = `
-            <button class="nav-button" id="prevBtn">←</button>
-            <button class="nav-button" id="nextBtn">→</button>
-        `;
-        wrapper.parentElement.appendChild(nav);
-        
-        // Add event listeners for buttons
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        
-        prevBtn.addEventListener('click', () => navigateMap('prev'));
-        nextBtn.addEventListener('click', () => navigateMap('next'));
-        
-        // Update button states
-        updateNavigationButtons();
     }
 
-    // Add touch event listeners only on mobile
+    // Add touch event listeners for panning
     const wrapper = document.querySelector('.map-wrapper');
     if (wrapper) {
+        let lastX = 0;
+        let lastY = 0;
+        let isDragging = false;
+        let currentX = 0;
+        let currentY = 0;
+
         wrapper.addEventListener('touchstart', (e) => {
             isDragging = true;
-            startX = e.touches[0].pageX;
-            startTransform = getCurrentTransform();
+            lastX = e.touches[0].pageX;
+            lastY = e.touches[0].pageY;
             wrapper.style.transition = 'none';
         }, { passive: true });
 
         wrapper.addEventListener('touchmove', (e) => {
             if (!isDragging) return;
             
-            const x = e.touches[0].pageX;
-            const walk = (x - startX) * SCROLL_SENSITIVITY;
-            const newTransform = startTransform + (walk / wrapper.offsetWidth * 100);
+            const deltaX = e.touches[0].pageX - lastX;
+            const deltaY = e.touches[0].pageY - lastY;
             
-            // Limit scrolling bounds
-            const limitedTransform = Math.max(Math.min(newTransform, 0), -66.66);
-            setMapPosition(limitedTransform);
+            currentX += deltaX;
+            currentY += deltaY;
+            
+            // Limit panning to keep map visible
+            const maxX = wrapper.offsetWidth * 0.5;
+            const maxY = wrapper.offsetHeight * 0.5;
+            
+            currentX = Math.max(Math.min(currentX, maxX), -maxX);
+            currentY = Math.max(Math.min(currentY, maxY), -maxY);
+            
+            wrapper.style.transform = `translate(${currentX}px, ${currentY}px)`;
+            
+            lastX = e.touches[0].pageX;
+            lastY = e.touches[0].pageY;
         }, { passive: true });
 
         wrapper.addEventListener('touchend', () => {
             isDragging = false;
             wrapper.style.transition = 'transform 0.3s ease-out';
-            snapToNearestSection();
         });
     }
 }
 
-// Navigate map sections
-function navigateMap(direction) {
-    if (direction === 'prev' && currentSection > 0) {
-        currentSection--;
-    } else if (direction === 'next' && currentSection < TOTAL_SECTIONS) {
-        currentSection++;
-    }
-    
-    const position = -(currentSection * 33.33);
-    setMapPosition(position);
-    updateNavigationButtons();
-}
-
-// Update navigation button states
-function updateNavigationButtons() {
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    if (prevBtn && nextBtn) {
-        prevBtn.disabled = currentSection === 0;
-        nextBtn.disabled = currentSection === TOTAL_SECTIONS;
-    }
-}
-
-// Get current transform value
+// Remove unused navigation functions
 function getCurrentTransform() {
     const wrapper = document.querySelector('.map-wrapper');
     const transform = window.getComputedStyle(wrapper).getPropertyValue('transform');
     const matrix = new DOMMatrix(transform);
-    return matrix.m41 / wrapper.offsetWidth * 100;
-}
-
-// Set map position - only apply transform on mobile
-function setMapPosition(percentage) {
-    const wrapper = document.querySelector('.map-wrapper');
-    if (window.innerWidth <= 768) {
-        wrapper.style.transform = `scale(1.5) translateX(${percentage}%)`;
-    }
-}
-
-// Snap to nearest section after dragging
-function snapToNearestSection() {
-    const currentPosition = getCurrentTransform();
-    const sectionWidth = 33.33;
-    currentSection = Math.round(Math.abs(currentPosition) / sectionWidth);
-    currentSection = Math.max(0, Math.min(currentSection, TOTAL_SECTIONS));
-    const position = -(currentSection * sectionWidth);
-    setMapPosition(position);
-    updateNavigationButtons();
+    return {
+        x: matrix.m41,
+        y: matrix.m42
+    };
 }
