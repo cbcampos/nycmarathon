@@ -7,33 +7,42 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <div class="card">
-            <h1>Thank You for Your Sponsorship!</h1>
-            
-            <div class="sponsorship-details">
-                <h2>Your Sponsorship Details</h2>
-                <p><strong>Name:</strong> <span id="sponsorName"></span></p>
-                <p><strong>Email:</strong> <span id="sponsorEmail"></span></p>
-                <p><strong>Message:</strong> <span id="sponsorMessage"></span></p>
-                <p><strong>Amount:</strong> <span id="sponsorAmount"></span></p>
-            </div>
-
-            <div class="instructions">
-                <h2>Next Steps</h2>
-                <ol>
-                    <li>Click the button below to go to the KultureCity fundraising page</li>
-                    <li>Click the "Donate" button on the KultureCity page</li>
-                    <li>Fill in the donation form with the information shown above</li>
-                    <li>Complete your payment</li>
-                </ol>
-            </div>
-
-            <div class="button-container">
-                <a href="https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/" class="button">Continue to KultureCity Donation Page</a>
+    <header role="banner">
+        <div class="container">
+            <div class="hero">
+                <h1>Thank You for Your <span>Sponsorship!</span></h1>
+                <p>Complete your donation on the KultureCity page</p>
             </div>
         </div>
-    </div>
+    </header>
+
+    <main role="main">
+        <div class="container">
+            <div class="card">
+                <div class="sponsorship-details">
+                    <h2>Your Sponsorship Details</h2>
+                    <p><strong>Name:</strong> <span id="sponsorName"></span></p>
+                    <p><strong>Email:</strong> <span id="sponsorEmail"></span></p>
+                    <p><strong>Message:</strong> <span id="sponsorMessage"></span></p>
+                    <p><strong>Amount:</strong> <span id="sponsorAmount"></span></p>
+                </div>
+
+                <div class="instructions">
+                    <h2>Next Steps</h2>
+                    <ol>
+                        <li>Click the button below to go to the KultureCity fundraising page</li>
+                        <li>Click the "Donate" button on the KultureCity page</li>
+                        <li>Fill in the donation form with the information shown above</li>
+                        <li>Complete your payment</li>
+                    </ol>
+                </div>
+
+                <div class="button-container">
+                    <a href="https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/" class="button">Continue to KultureCity Donation Page</a>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
