@@ -756,30 +756,31 @@ function fetchTrainingStats() {
     const script = document.createElement('script');
     const callbackName = 'trainingCallback_' + Math.round(100000 * Math.random());
     
-    // Define the callback function in the global scope BEFORE creating the script
-    window[callbackName] = (response) => {
-        logDebug("📥 Received training data response:", response);
-        
-        // Check if response contains Strava error details
-        if (response && response.error && response.error.includes('Strava')) {
-            logDebug("🔑 Strava API Token Issue:", response.error);
-            console.warn("Strava API Token needs to be refreshed. Error:", response.error);
-        }
-        
-        // Clean up
-        if (script.parentNode) {
-            script.parentNode.removeChild(script);
-            logDebug("🧹 Cleaned up script tag");
-        }
-        delete window[callbackName];
-        logDebug("🧹 Cleaned up callback function");
-        
-        return response;
-    };
-    
     // Create a promise that will resolve when the callback is called
     const statsPromise = new Promise((resolve, reject) => {
         logDebug(`🔄 Setting up callback: ${callbackName}`);
+        
+        // Define the callback function in the global scope
+        window[callbackName] = (response) => {
+            logDebug("📥 Received training data response:", response);
+            
+            // Check if response contains Strava error details
+            if (response && response.error && response.error.includes('Strava')) {
+                logDebug("🔑 Strava API Token Issue:", response.error);
+                console.warn("Strava API Token needs to be refreshed. Error:", response.error);
+            }
+            
+            // Clean up
+            if (script.parentNode) {
+                script.parentNode.removeChild(script);
+                logDebug("🧹 Cleaned up script tag");
+            }
+            delete window[callbackName];
+            logDebug("🧹 Cleaned up callback function");
+            
+            // Resolve the promise with the response
+            resolve(response);
+        };
         
         // Handle script load error
         script.onerror = () => {
@@ -792,7 +793,7 @@ function fetchTrainingStats() {
             delete window[callbackName];
         };
 
-        // Set timeout to 15 seconds (increased from 5)
+        // Set timeout to 15 seconds
         const timeoutId = setTimeout(() => {
             const error = new Error('Training data request timed out');
             logDebug("⏰ Request timed out:", error);
@@ -801,7 +802,7 @@ function fetchTrainingStats() {
                 script.parentNode.removeChild(script);
             }
             delete window[callbackName];
-        }, 15000); // 15 second timeout
+        }, 15000);
 
         // Add script to document
         const url = `${googleScriptURL}?type=training&debug=true&callback=${callbackName}`;
