@@ -694,11 +694,34 @@ function updateCountdown() {
 function initVideoOverlay() {
     const overlay = document.getElementById('videoOverlay');
     const closeButton = document.querySelector('.close-video');
-    const iframe = overlay.querySelector('iframe');
+    const videoContainer = overlay.querySelector('.video-container');
+    
+    // Create video element
+    const video = document.createElement('video');
+    video.controls = true;
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.maxHeight = '90vh';
+    video.style.maxWidth = '90vw';
+    video.style.objectFit = 'contain';
+    
+    // Create source element
+    const source = document.createElement('source');
+    source.src = 'https://www.dropbox.com/scl/fi/5gp47tg2acew5rnd5luob/KC-Impact-2024-Final.mp4?rlkey=sgd6jxonks0x2d0zh0xo7qwx4&e=2&st=wtffqzol&dl=0';
+    source.type = 'video/mp4';
+    
+    // Add source to video
+    video.appendChild(source);
+    
+    // Replace iframe with video element
+    if (videoContainer) {
+        videoContainer.innerHTML = '';
+        videoContainer.appendChild(video);
+    }
     
     function stopVideo() {
-        // Send stop command to YouTube iframe
-        iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
+        video.pause();
+        video.currentTime = 0;
         overlay.style.display = 'none';
     }
     
