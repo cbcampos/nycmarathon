@@ -597,7 +597,7 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
             }
 
             // Create URL with form data as parameters
-            const fundraiserUrl = new URL('redirect.html');
+            const fundraiserUrl = 'redirect.html';
             
             // Store the form data in localStorage for the redirect page to use
             if (hasRequiredFeatures.localStorage) {
@@ -612,7 +612,7 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
 
             // Show success message and redirect
             alert("🎉 Sponsorship submitted successfully! You will be redirected to complete your donation.");
-            window.location.href = fundraiserUrl.toString();
+            window.location.href = fundraiserUrl;
         }
     } catch (error) {
         logDebug("❌ Submission Failed:", error.message);
