@@ -3,94 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting to KultureCity...</title>
+    <title>Complete Your Donation - KultureCity</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
+            line-height: 1.6;
             margin: 0;
+            padding: 20px;
             background-color: #f5f5f5;
             color: #333;
         }
         .container {
-            text-align: center;
-            padding: 2rem;
+            max-width: 600px;
+            margin: 40px auto;
             background: white;
-            border-radius: 8px;
+            padding: 30px;
+            border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .message {
+        .sponsorship-details {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
             margin: 20px 0;
-            font-size: 1.1em;
         }
-        .error {
-            color: #e74c3c;
+        .sponsorship-details p {
+            margin: 10px 0;
+        }
+        .instructions {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
             margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button-container {
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="spinner"></div>
-        <div class="message">Preparing your donation...</div>
+        <h1>Thank You for Your Sponsorship!</h1>
+        
+        <div class="sponsorship-details">
+            <h2>Your Sponsorship Details</h2>
+            <p><strong>Name:</strong> <span id="sponsorName"></span></p>
+            <p><strong>Email:</strong> <span id="sponsorEmail"></span></p>
+            <p><strong>Message:</strong> <span id="sponsorMessage"></span></p>
+            <p><strong>Amount:</strong> <span id="sponsorAmount"></span></p>
+        </div>
+
+        <div class="instructions">
+            <h2>Next Steps</h2>
+            <ol>
+                <li>Click the button below to go to the KultureCity fundraising page</li>
+                <li>Click the "Donate" button on the KultureCity page</li>
+                <li>Fill in the donation form with the information shown above</li>
+                <li>Complete your payment</li>
+            </ol>
+        </div>
+
+        <div class="button-container">
+            <a href="https://www.kulturecity.org/nyc-marathon-2025/" class="button">Continue to KultureCity Donation Page</a>
+        </div>
     </div>
 
     <script>
-        // Function to redirect to KultureCity with form data
-        function redirectToKultureCity() {
+        document.addEventListener('DOMContentLoaded', function() {
             try {
-                // Get the stored form data
-                const storedData = localStorage.getItem('fundraiserFormData');
-                if (!storedData) {
-                    throw new Error('No form data found');
+                const formData = JSON.parse(localStorage.getItem('fundraiserFormData'));
+                if (formData) {
+                    // Display the sponsorship details
+                    document.getElementById('sponsorName').textContent = `${formData.firstName} ${formData.lastName}`;
+                    document.getElementById('sponsorEmail').textContent = formData.email;
+                    document.getElementById('sponsorMessage').textContent = formData.message;
+                    document.getElementById('sponsorAmount').textContent = `$${formData.amount}`;
+                    
+                    // Clear the stored data
+                    localStorage.removeItem('fundraiserFormData');
+                } else {
+                    // If no data is found, redirect to the main page
+                    window.location.href = 'index.html';
                 }
-
-                const formData = JSON.parse(storedData);
-                
-                // Construct the URL with form data as parameters
-                const kcUrl = new URL('https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/');
-                
-                // Add form data as URL parameters
-                Object.entries(formData).forEach(([key, value]) => {
-                    kcUrl.searchParams.append(key, value);
-                });
-
-                // Clear the stored data
-                localStorage.removeItem('fundraiserFormData');
-
-                // Redirect to KultureCity
-                window.location.href = kcUrl.toString();
             } catch (error) {
-                console.error('Error during redirect:', error);
-                document.querySelector('.container').innerHTML = `
-                    <div class="error">
-                        There was an error preparing your donation. 
-                        <br>
-                        Please <a href="https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/">click here</a> to continue manually.
-                    </div>
-                `;
+                console.error('Error loading sponsorship data:', error);
+                window.location.href = 'index.html';
             }
-        }
-
-        // Start the redirect process after a short delay
-        setTimeout(redirectToKultureCity, 1000);
+        });
     </script>
 </body>
 </html> 
