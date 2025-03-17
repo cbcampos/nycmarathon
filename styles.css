@@ -843,65 +843,6 @@ a:focus-visible {
     text-decoration: underline;
 }
 
-/* Video Overlay */
-.video-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    z-index: 10000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.video-container {
-    position: relative;
-    width: 90%;
-    max-width: 800px;
-    aspect-ratio: 16/9;
-    background: black;
-}
-
-.video-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border: none;
-}
-
-.close-video {
-    position: absolute;
-    top: -40px;
-    right: 0;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 32px;
-    cursor: pointer;
-    padding: 10px;
-    z-index: 1;
-}
-
-.close-video:hover {
-    color: #ff3b3b;
-}
-
-@media (max-width: 768px) {
-    .video-container {
-        width: 95%;
-    }
-    
-    .close-video {
-        top: -35px;
-        right: -5px;
-    }
-}
-
 /* Training Stats Section */
 .training-stats-container {
     margin: 20px 0;
@@ -991,4 +932,45 @@ a:focus-visible {
     .training-text {
         font-size: 13px;
     }
+}
+
+/* Remove video overlay styles */
+.video-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.video-container {
+    position: relative;
+    width: 90%;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.close-video {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 5px 10px;
+    z-index: 1001;
+}
+
+.close-video:hover {
+    color: #ff3b3b;
 }
