@@ -792,8 +792,8 @@ function fetchTrainingStats() {
             delete window[callbackName];
         };
 
-        // Set timeout
-        setTimeout(() => {
+        // Set timeout to 15 seconds (increased from 5)
+        const timeoutId = setTimeout(() => {
             const error = new Error('Training data request timed out');
             logDebug("⏰ Request timed out:", error);
             reject(error);
@@ -801,15 +801,15 @@ function fetchTrainingStats() {
                 script.parentNode.removeChild(script);
             }
             delete window[callbackName];
-        }, 5000);
-    });
+        }, 15000); // 15 second timeout
 
-    // Add debug parameter to help identify token issues
-    const url = `${googleScriptURL}?type=training&debug=true&callback=${callbackName}`;
-    logDebug(`🔗 Loading training data from URL: ${url}`);
-    script.src = url;
-    document.body.appendChild(script);
-    logDebug("📤 Added script tag to document");
+        // Add script to document
+        const url = `${googleScriptURL}?type=training&debug=true&callback=${callbackName}`;
+        logDebug(`🔗 Loading training data from URL: ${url}`);
+        script.src = url;
+        document.body.appendChild(script);
+        logDebug("📤 Added script tag to document");
+    });
     
     return statsPromise;
 }
@@ -885,6 +885,9 @@ async function initializeTrainingStats() {
     logDebug("🎬 Starting training stats initialization");
     try {
         const stats = await fetchTrainingStats();
+        if (!stats || !stats.success) {
+            throw new Error(stats?.error || 'Failed to fetch training stats');
+        }
         await displayTrainingStats(stats);
         logDebug("✅ Training stats initialization complete");
     } catch (error) {
