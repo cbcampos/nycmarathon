@@ -575,13 +575,6 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         
         logDebug("✅ Submission successful:", response);
 
-        // Show appropriate success message based on email status
-        if (response.emailSent) {
-            alert("🎉 Sponsorship submitted successfully! Check your email for payment instructions.");
-        } else {
-            alert("🎉 Sponsorship submitted successfully! You will receive payment instructions shortly.");
-        }
-        
         // Close the modal and reset body overflow
         modal.style.display = "none";
         document.body.style.overflow = "auto";
@@ -596,6 +589,24 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         if (hasRequiredFeatures.localStorage) {
             localStorage.removeItem('sponsorFormData');
         }
+
+        // Create URL with form data as parameters
+        const fundraiserUrl = new URL('redirect.html');
+        
+        // Store the form data in localStorage for the redirect page to use
+        if (hasRequiredFeatures.localStorage) {
+            localStorage.setItem('fundraiserFormData', JSON.stringify({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                message: `Sponsoring Mile ${formData.mile}: ${formData.message}`,
+                amount: formData.amount
+            }));
+        }
+
+        // Show success message and redirect
+        alert("🎉 Sponsorship submitted successfully! You will be redirected to complete your donation.");
+        window.location.href = fundraiserUrl.toString();
         
     } catch (error) {
         logDebug("❌ Submission Failed:", error.message);
