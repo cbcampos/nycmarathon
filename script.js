@@ -733,28 +733,30 @@ function fetchTrainingStats() {
     const script = document.createElement('script');
     const callbackName = 'trainingCallback_' + Math.round(100000 * Math.random());
     
+    // Define the callback function in the global scope BEFORE creating the script
+    window[callbackName] = (response) => {
+        logDebug("📥 Received training data response:", response);
+        
+        // Check if response contains Strava error details
+        if (response && response.error && response.error.includes('Strava')) {
+            logDebug("🔑 Strava API Token Issue:", response.error);
+            console.warn("Strava API Token needs to be refreshed. Error:", response.error);
+        }
+        
+        // Clean up
+        if (script.parentNode) {
+            script.parentNode.removeChild(script);
+            logDebug("🧹 Cleaned up script tag");
+        }
+        delete window[callbackName];
+        logDebug("🧹 Cleaned up callback function");
+        
+        return response;
+    };
+    
     // Create a promise that will resolve when the callback is called
     const statsPromise = new Promise((resolve, reject) => {
         logDebug(`🔄 Setting up callback: ${callbackName}`);
-        
-        window[callbackName] = (response) => {
-            logDebug("📥 Received training data response:", response);
-            
-            // Check if response contains Strava error details
-            if (response && response.error && response.error.includes('Strava')) {
-                logDebug("🔑 Strava API Token Issue:", response.error);
-                console.warn("Strava API Token needs to be refreshed. Error:", response.error);
-            }
-            
-            resolve(response);
-            // Clean up
-            if (script.parentNode) {
-                script.parentNode.removeChild(script);
-                logDebug("🧹 Cleaned up script tag");
-            }
-            delete window[callbackName];
-            logDebug("🧹 Cleaned up callback function");
-        };
         
         // Handle script load error
         script.onerror = () => {
