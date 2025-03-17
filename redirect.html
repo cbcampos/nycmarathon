@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting to KultureCity...</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .message {
+            margin: 20px 0;
+            font-size: 1.1em;
+        }
+        .error {
+            color: #e74c3c;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <div class="message">Preparing your donation...</div>
+    </div>
+
+    <script>
+        // Function to redirect to KultureCity with form data
+        function redirectToKultureCity() {
+            try {
+                // Get the stored form data
+                const storedData = localStorage.getItem('fundraiserFormData');
+                if (!storedData) {
+                    throw new Error('No form data found');
+                }
+
+                const formData = JSON.parse(storedData);
+                
+                // Construct the URL with form data as parameters
+                const kcUrl = new URL('https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/');
+                
+                // Add form data as URL parameters
+                Object.entries(formData).forEach(([key, value]) => {
+                    kcUrl.searchParams.append(key, value);
+                });
+
+                // Clear the stored data
+                localStorage.removeItem('fundraiserFormData');
+
+                // Redirect to KultureCity
+                window.location.href = kcUrl.toString();
+            } catch (error) {
+                console.error('Error during redirect:', error);
+                document.querySelector('.container').innerHTML = `
+                    <div class="error">
+                        There was an error preparing your donation. 
+                        <br>
+                        Please <a href="https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/">click here</a> to continue manually.
+                    </div>
+                `;
+            }
+        }
+
+        // Start the redirect process after a short delay
+        setTimeout(redirectToKultureCity, 1000);
+    </script>
+</body>
+</html> 
