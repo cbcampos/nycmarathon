@@ -724,7 +724,7 @@ function initVideoOverlay() {
     
     // Create source element
     const source = document.createElement('source');
-    source.src = 'https://www.dropbox.com/scl/fi/5gp47tg2acew5rnd5luob/KC-Impact-2024-Final.mp4?rlkey=sgd6jxonks0x2d0zh0xo7qwx4&e=2&st=wtffqzol&dl=0';
+    source.src = 'https://github.com/cbcampos/nycmarathon/raw/refs/heads/main/KC%20Impact%202024%20Final.mp4';
     source.type = 'video/mp4';
     
     // Add source to video
@@ -759,6 +759,22 @@ function initVideoOverlay() {
             stopVideo();
         }
     });
+
+    // Add error handling
+    video.onerror = (e) => {
+        console.error('Video loading error:', e);
+        logDebug("❌ Video loading error:", e);
+    };
+
+    // Add load success logging
+    video.onloadeddata = () => {
+        logDebug("✅ Video loaded successfully");
+    };
+
+    // Add play success logging
+    video.onplay = () => {
+        logDebug("▶️ Video started playing");
+    };
 }
 
 // Initialize video overlay when DOM is loaded
