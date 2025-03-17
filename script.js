@@ -918,3 +918,45 @@ async function initializeTrainingStats() {
         }
     }
 }
+
+function loadVideo() {
+    logDebug("🎥 Loading video...");
+    const videoContainer = document.querySelector('.video-container');
+    if (!videoContainer) {
+        logDebug("❌ Video container not found");
+        return;
+    }
+
+    const video = document.createElement('video');
+    video.id = 'heroVideo';
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
+    video.playsInline = true;
+    video.style.width = '100%';
+    video.style.height = '100%';
+    video.style.objectFit = 'cover';
+
+    const source = document.createElement('source');
+    source.src = 'https://github.com/cbcampos/nycmarathon/raw/refs/heads/main/KC%20Impact%202024%20Final.mp4';
+    source.type = 'video/mp4';
+    video.appendChild(source);
+
+    videoContainer.appendChild(video);
+
+    // Add error handling
+    video.onerror = (e) => {
+        logDebug("❌ Video loading error:", e);
+        videoContainer.innerHTML = '<div class="fallback-content">Support inclusion through KultureCity</div>';
+    };
+
+    // Add load success logging
+    video.onloadeddata = () => {
+        logDebug("✅ Video loaded successfully");
+    };
+
+    // Add play success logging
+    video.onplay = () => {
+        logDebug("▶️ Video started playing");
+    };
+}
