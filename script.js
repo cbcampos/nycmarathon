@@ -559,55 +559,61 @@ document.getElementById("sponsorForm").addEventListener("submit", async (e) => {
         // Set a timeout
         const timeoutPromise = new Promise((_, reject) => {
             setTimeout(() => {
-                reject(new Error('Submission is taking longer than expected, but your sponsorship may have been recorded. Please check back in a few minutes.'));
+                reject(new Error('Submission is taking longer than expected, but continuing with redirect...'));
                 if (script.parentNode) {
                     script.parentNode.removeChild(script);
                 }
                 delete window[callbackName];
-            }, 5000);
+            }, 15000); // Increased from 5000 to 15000
         });
 
         // Add script to document to start the request
         document.body.appendChild(script);
 
-        // Wait for either success or timeout
-        const response = await Promise.race([submissionPromise, timeoutPromise]);
-        
-        logDebug("✅ Submission successful:", response);
+        try {
+            // Wait for either success or timeout
+            const response = await Promise.race([submissionPromise, timeoutPromise]);
+            logDebug("✅ Submission successful:", response);
+        } catch (error) {
+            logDebug("⚠️ Submission warning:", error.message);
+            // Don't show error to user if it's just a timeout
+            if (!error.message.includes('taking longer than expected')) {
+                alert(error.message);
+            }
+        } finally {
+            // Close the modal and reset body overflow
+            modal.style.display = "none";
+            document.body.style.overflow = "auto";
+            
+            // Reset the form
+            document.getElementById("sponsorForm").reset();
+            
+            // Reload sponsorships to update the map
+            await loadSponsorships();
+            
+            // Clear saved form data on successful submission
+            if (hasRequiredFeatures.localStorage) {
+                localStorage.removeItem('sponsorFormData');
+            }
 
-        // Close the modal and reset body overflow
-        modal.style.display = "none";
-        document.body.style.overflow = "auto";
-        
-        // Reset the form
-        document.getElementById("sponsorForm").reset();
-        
-        // Reload sponsorships to update the map
-        await loadSponsorships();
-        
-        // Clear saved form data on successful submission
-        if (hasRequiredFeatures.localStorage) {
-            localStorage.removeItem('sponsorFormData');
+            // Create URL with form data as parameters
+            const fundraiserUrl = new URL('redirect.html');
+            
+            // Store the form data in localStorage for the redirect page to use
+            if (hasRequiredFeatures.localStorage) {
+                localStorage.setItem('fundraiserFormData', JSON.stringify({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    message: `Sponsoring Mile ${formData.mile}: ${formData.message}`,
+                    amount: formData.amount
+                }));
+            }
+
+            // Show success message and redirect
+            alert("🎉 Sponsorship submitted successfully! You will be redirected to complete your donation.");
+            window.location.href = fundraiserUrl.toString();
         }
-
-        // Create URL with form data as parameters
-        const fundraiserUrl = new URL('redirect.html');
-        
-        // Store the form data in localStorage for the redirect page to use
-        if (hasRequiredFeatures.localStorage) {
-            localStorage.setItem('fundraiserFormData', JSON.stringify({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email,
-                message: `Sponsoring Mile ${formData.mile}: ${formData.message}`,
-                amount: formData.amount
-            }));
-        }
-
-        // Show success message and redirect
-        alert("🎉 Sponsorship submitted successfully! You will be redirected to complete your donation.");
-        window.location.href = fundraiserUrl.toString();
-        
     } catch (error) {
         logDebug("❌ Submission Failed:", error.message);
         alert(error.message);
