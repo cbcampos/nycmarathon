@@ -5,91 +5,163 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Complete Your Donation - KultureCity</title>
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --text-color: #333;
+            --light-bg: #f5f5f5;
+            --white: #ffffff;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
+            padding: 0;
+            background-color: var(--light-bg);
+            color: var(--text-color);
         }
+
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 40px auto;
-            background: white;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
+
         h1 {
-            color: #2c3e50;
-            margin-bottom: 20px;
+            color: var(--primary-color);
+            margin-bottom: 30px;
             text-align: center;
+            font-size: 2.5em;
         }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
         .sponsorship-details {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
+            background: var(--light-bg);
+            padding: 25px;
+            border-radius: 12px;
             margin: 20px 0;
+            border: 2px solid var(--secondary-color);
         }
+
         .sponsorship-details p {
-            margin: 10px 0;
+            margin: 15px 0;
+            font-size: 1.1em;
         }
+
+        .sponsorship-details strong {
+            color: var(--primary-color);
+        }
+
         .instructions {
-            background: #e8f4f8;
-            padding: 20px;
-            border-radius: 8px;
+            background: var(--light-bg);
+            padding: 25px;
+            border-radius: 12px;
             margin: 20px 0;
+            border: 2px solid var(--secondary-color);
         }
+
         .instructions ol {
             margin: 0;
             padding-left: 20px;
         }
+
         .instructions li {
-            margin: 10px 0;
+            margin: 15px 0;
+            font-size: 1.1em;
         }
+
         .button {
             display: inline-block;
-            background-color: #007bff;
-            color: white;
-            padding: 12px 24px;
+            background-color: var(--secondary-color);
+            color: var(--white);
+            padding: 15px 30px;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 8px;
             margin-top: 20px;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            font-size: 1.1em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .button:hover {
-            background-color: #0056b3;
+            background-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+
         .button-container {
             text-align: center;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+                margin: 20px auto;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            h2 {
+                font-size: 1.5em;
+            }
+
+            .button {
+                width: 100%;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Thank You for Your Sponsorship!</h1>
-        
-        <div class="sponsorship-details">
-            <h2>Your Sponsorship Details</h2>
-            <p><strong>Name:</strong> <span id="sponsorName"></span></p>
-            <p><strong>Email:</strong> <span id="sponsorEmail"></span></p>
-            <p><strong>Message:</strong> <span id="sponsorMessage"></span></p>
-            <p><strong>Amount:</strong> <span id="sponsorAmount"></span></p>
-        </div>
+        <div class="card">
+            <h1>Thank You for Your Sponsorship!</h1>
+            
+            <div class="sponsorship-details">
+                <h2>Your Sponsorship Details</h2>
+                <p><strong>Name:</strong> <span id="sponsorName"></span></p>
+                <p><strong>Email:</strong> <span id="sponsorEmail"></span></p>
+                <p><strong>Message:</strong> <span id="sponsorMessage"></span></p>
+                <p><strong>Amount:</strong> <span id="sponsorAmount"></span></p>
+            </div>
 
-        <div class="instructions">
-            <h2>Next Steps</h2>
-            <ol>
-                <li>Click the button below to go to the KultureCity fundraising page</li>
-                <li>Click the "Donate" button on the KultureCity page</li>
-                <li>Fill in the donation form with the information shown above</li>
-                <li>Complete your payment</li>
-            </ol>
-        </div>
+            <div class="instructions">
+                <h2>Next Steps</h2>
+                <ol>
+                    <li>Click the button below to go to the KultureCity fundraising page</li>
+                    <li>Click the "Donate" button on the KultureCity page</li>
+                    <li>Fill in the donation form with the information shown above</li>
+                    <li>Complete your payment</li>
+                </ol>
+            </div>
 
-        <div class="button-container">
-            <a href="https://www.kulturecity.org/nyc-marathon-2025/" class="button">Continue to KultureCity Donation Page</a>
+            <div class="button-container">
+                <a href="https://www.kulturecity.org/kc-fundraiser/ramsey-runs-nyc-25-for-kulturecity/" class="button">Continue to KultureCity Donation Page</a>
+            </div>
         </div>
     </div>
 
