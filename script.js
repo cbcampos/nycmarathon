@@ -5,6 +5,7 @@ const googleScriptURL = "https://script.google.com/macros/s/AKfycbwS9aOJRTp6TxWd
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
+const overallRaisedEl = document.getElementById("overallRaised");
 const modal = document.getElementById("sponsorModal");
 const closeModal = document.querySelector(".close");
 const submitButton = document.querySelector(".submit-button");
@@ -130,6 +131,7 @@ async function loadSponsorships() {
         }
 
         const sponsorships = response.data;
+        const overallRaised = response.overall || 0;
         let totalRaised = 0;
         miles.forEach(mile => {
             if (sponsorships[mile.number]) {
@@ -143,6 +145,9 @@ async function loadSponsorships() {
         });
 
         updateProgressBar(totalRaised);
+        if (overallRaisedEl) {
+            overallRaisedEl.textContent = `$${overallRaised.toLocaleString()} overall raised`;
+        }
         renderMileMarkers();
     } catch (error) {
         logDebug(`❌ Error loading sponsorships: ${error.message}`);
