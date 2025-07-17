@@ -978,21 +978,17 @@ a:focus-visible {
 /* --- Shirt ad --- */
 .shirt-ad {
     position: fixed;
-    bottom: 80px;
-    right: -260px;
-    width: 250px;
+    top: 315px;
+    right: 30px;
+    width: 150px;
     max-width: 50vw;
     text-decoration: none;
     z-index: 1100;
     transform-origin: top left;
-    animation: shirt-swing-in 1s forwards 1.5s;
+    /* optional swing animation removed for fixed placement */
 }
 
-@keyframes shirt-swing-in {
-    0%   { right: -260px; transform: rotate(-15deg); }
-    60%  { right: 20px;    transform: rotate(3deg); }
-    100% { right: 0;       transform: rotate(0deg); }
-}
+/* swing animation removed since ad is now static */
 
 .shirt-ad img {
     width: 100%;
