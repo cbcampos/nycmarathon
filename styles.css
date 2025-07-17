@@ -974,3 +974,49 @@ a:focus-visible {
 .close-video:hover {
     color: #ff3b3b;
 }
+
+/* --- Shirt ad --- */
+.shirt-ad {
+    position: fixed;
+    bottom: 80px;
+    right: -260px;
+    width: 250px;
+    max-width: 50vw;
+    text-decoration: none;
+    z-index: 1100;
+    transform-origin: top left;
+    animation: shirt-swing-in 1s forwards 1.5s;
+}
+
+@keyframes shirt-swing-in {
+    0%   { right: -260px; transform: rotate(-15deg); }
+    60%  { right: 20px;    transform: rotate(3deg); }
+    100% { right: 0;       transform: rotate(0deg); }
+}
+
+.shirt-ad img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.shirt-ad-text {
+    position: absolute;
+    bottom: 8px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    color: #fff;
+    background: rgba(0,0,0,0.6);
+    padding: 4px 0;
+    font-size: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shirt-ad {
+        animation: none;
+        right: 0;
+        transform: none;
+    }
+}
