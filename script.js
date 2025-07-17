@@ -1,5 +1,7 @@
 const googleScriptURL = "https://script.google.com/macros/s/AKfycbwS9aOJRTp6TxWdacrfTZZIu5gU4IoNM6BElKdxrDmouguS9nKf9meZemJOgMlJoJR9sg/exec";
 
+//made changes to the script.js file
+
 const mileContainer = document.getElementById("mile-markers");
 const progressText = document.getElementById("amountRaised");
 const progressFill = document.querySelector(".progress-fill");
